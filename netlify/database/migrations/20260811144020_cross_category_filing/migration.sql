@@ -1,0 +1,1 @@
+ALTER TABLE "item_circles" ADD COLUMN "category_id" integer;
