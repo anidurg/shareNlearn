@@ -1,0 +1,106 @@
+{
+  "name": "Share & Learn",
+  "short_name": "Share&Learn",
+  "description": "A members-only room for the group: share songs, recipes, fun facts, words, books and traditional remedies, and keep what you love in your own library.",
+  "id": "/",
+  "start_url": "/#/circles",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f1f5fb",
+  "theme_color": "#2563eb",
+  "lang": "en",
+  "categories": ["social", "music", "education", "food", "health"],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "image",
+          "accept": [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp"
+          ]
+        },
+        {
+          "name": "file",
+          "accept": [
+            "application/pdf",
+            "audio/ogg",
+            "audio/opus",
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/aac",
+            "audio/amr",
+            "video/mp4",
+            ".pdf",
+            ".opus",
+            ".ogg",
+            ".mp3",
+            ".m4a",
+            ".aac",
+            ".amr",
+            ".mp4"
+          ]
+        }
+      ]
+    }
+  },
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Record a song",
+      "short_name": "Record",
+      "url": "/#/songs",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "My circles",
+      "short_name": "Circles",
+      "url": "/#/circles",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "My Library",
+      "short_name": "Library",
+      "url": "/#/library",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Invite a friend",
+      "short_name": "Invite",
+      "url": "/#/profile",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
