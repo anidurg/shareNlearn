@@ -1,0 +1,1 @@
+ALTER TABLE "circle_categories" ADD COLUMN "fields_seeded_at" timestamp;

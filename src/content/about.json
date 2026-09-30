@@ -1,0 +1,66 @@
+{
+  "headline": "Share what matters. Keep what matters.",
+  "headlineEmphasis": "Keep",
+
+  "keyMessage": "It isn't meant to replace the places where we talk to each other. It's meant to preserve the things we don't want to lose.",
+
+  "problem": "Conversations move on. Useful links get buried. Recipes, songs, documents, ideas and experiences become difficult to find.",
+
+  "purpose": "Share & Learn gives those things a permanent home—together with the people and conversations that give them meaning.",
+
+  "flow": [
+    { "word": "Share", "line": "with the people it is meant for" },
+    { "word": "Preserve", "line": "so it does not scroll away" },
+    { "word": "Organize", "line": "the way your group thinks about it" },
+    { "word": "Rediscover", "line": "when somebody goes looking" },
+    { "word": "Connect", "line": "through what people say about it" }
+  ],
+
+  "why": {
+    "heading": "Why Share & Learn",
+    "paragraphs": [
+      "We already share the good things with each other — a song somebody sang at a wedding, the recipe an aunt finally wrote down, a book that changed somebody's year, a remedy from a grandmother, a link worth reading twice.",
+      "And then it scrolls away. A month later it is somewhere in a group chat, under two hundred photos and a poll about a picnic, and the only way back to it is to ask whoever shared it whether they still have it.",
+      "Keep talking wherever you talk. When something comes along that shouldn't be lost, put it here — and it will still be here, findable, when somebody goes looking."
+    ]
+  },
+
+  "howItWorks": {
+    "heading": "How it works",
+    "points": [
+      {
+        "title": "Circles hold the people",
+        "copy": "A family, a temple group, a book club, a handful of friends. You share into one or more circles, and what you share stays with the people it was meant for. A circle can be private, ask to join, or open to all."
+      },
+      {
+        "title": "Folders hold the order",
+        "copy": "Every circle arranges its own — festivals, weeknight dinners, whatever it actually needs, nested as deep as it likes — so a thing shared today is still where somebody would think to look for it next year."
+      },
+      {
+        "title": "Each kind keeps its own details",
+        "copy": "Songs, recipes, books, remedies, words, fun facts and bookmarks. A song keeps its words and their language, a recipe its ingredients, a book its author — so nothing worth knowing has to be squeezed into a caption."
+      },
+      {
+        "title": "Conversations stay with the thing",
+        "copy": "Discuss a book or a song, add your experience or a tip to a recipe or a remedy, offer a word in another language. What people say stays next to what it is about."
+      },
+      {
+        "title": "Easy to find again",
+        "copy": "Search a circle, walk its folders, or save anything to your own library so it is there whenever you want it."
+      }
+    ]
+  },
+
+  "communities": {
+    "heading": "Built around communities",
+    "paragraphs": [
+      "Every circle decides what it is for. A family keeps its recipes and remedies; a music group keeps its songs with their words; a temple group keeps the events and prayers it returns to every year; a book club keeps what it read and what it thought of it.",
+      "A circle can add categories of its own, shape the details each one asks for, and arrange its folders the way its members already think — so each community preserves its own knowledge in its own way."
+    ]
+  },
+
+  "closing": [
+    "Share & Learn isn't meant to replace the places where we already talk to each other—WhatsApp, websites, email, or other communities.",
+    "It's a place to preserve the things we don't want to lose, organize them so they're easy to find again, and share them with the people we care about."
+  ]
+}

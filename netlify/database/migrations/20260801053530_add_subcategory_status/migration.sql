@@ -1,0 +1,1 @@
+ALTER TABLE "subcategories" ADD COLUMN "status" text DEFAULT 'active' NOT NULL;

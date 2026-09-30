@@ -1,0 +1,7105 @@
+/*
+ * The palette is one blue family over a cool near-white, and every colour in the
+ * app comes from here. The tokens are named for the job they do — surface, text,
+ * primary, line — and the older warm names below them are kept as aliases so a
+ * rule written before the retheme still resolves. Nothing outside this block
+ * should hold a hex value: a component that wants "the accent" asks for
+ * `var(--primary)` and follows the theme wherever it goes next.
+ */
+:root {
+  --bg: #f1f5fb;
+  --bg-deep: #e3ebf7;
+  --surface: #ffffff;
+  --surface-soft: #f7fafd;
+  --surface-tint: #eff5ff;
+
+  --primary: #2563eb;
+  --primary-deep: #1d4ed8;
+  --primary-soft: #dbeafe;
+  --accent: #0ea5e9;
+
+  --text: #0f172a;
+  --text-soft: #56637a;
+  --danger: #dc2626;
+  --success: #059669;
+
+  --line: #dbe3f0;
+  --line-strong: #c3d2e8;
+
+  /*
+   * Two shadows rather than one: cards sit close to the page and only floating
+   * things (menus, modals, the bottom bar) are allowed to lift off it. The old
+   * single heavy shadow read as warm and dated on every card at once.
+   */
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -18px rgba(15, 23, 42, 0.28);
+  --shadow-lift: 0 12px 32px -12px rgba(15, 23, 42, 0.18), 0 2px 8px -4px rgba(15, 23, 42, 0.1);
+  --ring: 0 0 0 3px rgba(37, 99, 235, 0.22);
+
+  --radius: 14px;
+  --radius-lg: 18px;
+
+  /*
+   * How much of the bottom of a phone screen the fixed tab bar owns, as one
+   * figure rather than as a number copied into every rule that has to clear it.
+   * `--tab-bar-height` is the bar itself and `--tab-bar-space` adds the home
+   * indicator under it, which is the part that used to be forgotten: a reserve
+   * of 3.5rem was already less than the bar and the inset then took another
+   * 34px, so the last line of the page — the About link in the footer — sat
+   * behind the bar with no scroll left to bring it out, and dragging for it only
+   * showed the rubber band. Anything that has to sit clear of the bar reads
+   * `--tab-bar-space`, and the bar itself takes the same figure as a
+   * `min-height`, so the two are the same number by construction: the height of
+   * a tab is an emoji's line box plus a label's, which no stylesheet can measure
+   * and which differs by handset, and a reserve worked out from a guess at it is
+   * exactly how the footer ended up behind the bar in the first place.
+   */
+  --tab-bar-height: 4.6rem;
+  --tab-bar-space: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+
+  /* The warm names the stylesheet grew up with, pointed at the blue scheme. */
+  --ivory: var(--bg);
+  --ivory-deep: var(--surface-tint);
+  --ink: var(--text);
+  --ink-soft: var(--text-soft);
+  --terracotta: var(--primary);
+  --terracotta-deep: var(--primary-deep);
+  --gold: var(--accent);
+
+  font-family: "Manrope", sans-serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*
+ * Two things every phone needs before any single rule below matters.
+ *
+ * `text-size-adjust` stops iOS inflating the body copy when the handset is turned
+ * sideways, which otherwise re-flows a page that was laid out correctly. And the
+ * app is full of member-written text — a URL in a book note, a long compound word
+ * in Kannada, an email address in a report — any one of which is a single
+ * unbreakable run wide enough to push a 360px screen sideways, so long words are
+ * allowed to break rather than being allowed to widen the page.
+ */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-wrap: break-word;
+  margin: 0;
+  background: var(--ivory);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Nothing binary is ever wider than the column it sits in. */
+img,
+video,
+audio,
+canvas {
+  max-width: 100%;
+}
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /*
+   * One faint wash of blue at the top of the page and nothing else. `overflow-x`
+   * is `clip` rather than `hidden` on purpose: `hidden` makes the page a scroll
+   * container, which silently breaks the sticky header on a phone.
+   */
+  background:
+    radial-gradient(ellipse 80% 30% at 50% -10%, rgba(37, 99, 235, 0.08), transparent),
+    var(--bg);
+  overflow-x: clip;
+}
+
+/*
+ * The paper grain the warm theme was built on. A blue scheme wants flat, clean
+ * surfaces instead, so the element still renders — `App.tsx` draws it — and shows
+ * nothing.
+ */
+.grain {
+  display: none;
+}
+
+/*
+ * The header sticks to the top of the viewport, which matters most on a phone:
+ * the circle switcher and the bell are the two controls a reader reaches for
+ * mid-scroll, and hunting for them at the top of a long feed is the thing that
+ * made the app feel like a desktop page shrunk down.
+ */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.9rem clamp(1rem, 4vw, 3.5rem);
+  padding-top: max(0.9rem, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: linear-gradient(155deg, var(--primary), var(--primary-deep));
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  box-shadow: 0 6px 16px -8px rgba(37, 99, 235, 0.7);
+}
+
+.brand-name {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* The circle in view, in the top-left corner beside the mark. Navigation is
+   circle-first, so this is the first control on the page. -------------------- */
+.header-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.header-circle-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.header-circle-select {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+  max-width: 14rem;
+}
+
+.header-circle-select:focus {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 1px;
+}
+
+.header-circle-select:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+/*
+ * The way to Profile, in the corner, and nothing but the member's initials. It
+ * replaced a pill reading "Profile", which was a word-shaped button competing with
+ * the bell beside it and the mark opposite; a round avatar is the thing every app
+ * puts there, so it needs no label on screen — but it does need one for a screen
+ * reader, which is why the caller passes the whole sentence to `aria-label` and
+ * `title` and the initials themselves are `aria-hidden`. 40px so it can be hit on a
+ * phone.
+ */
+.avatar-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex: 0 0 auto;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.avatar-button:hover {
+  color: var(--ink);
+  border-color: var(--ink-soft);
+  background: var(--surface);
+}
+
+.avatar-button[aria-current="page"] {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--surface);
+}
+
+.btn {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  /* 44px tall at the default font size, which is the smallest comfortable tap
+     target on a phone — so the same button works on both without a variant. */
+  min-height: 44px;
+  padding: 0.65rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
+    border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 8px 18px -10px rgba(37, 99, 235, 0.65);
+}
+
+.btn-primary:hover {
+  background: var(--primary-deep);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+  background: var(--surface-tint);
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.btn-danger {
+  color: var(--danger);
+}
+
+/*
+ * One focus ring for the whole app, on the keyboard only, so a member tabbing
+ * through a form can always see where they are without a mouse click drawing a
+ * box around everything it touches.
+ */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem clamp(1rem, 4vw, 3.5rem) 4rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hero {
+  max-width: 640px;
+  margin-bottom: 3rem;
+}
+
+.hero-title {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  line-height: 1.08;
+  margin: 0 0 1rem;
+  letter-spacing: -0.01em;
+}
+
+.hero-title em {
+  color: var(--terracotta);
+  font-style: italic;
+}
+
+.hero-copy {
+  font-size: 1.02rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* The greeting above a circle's own header: the same words, less room. */
+.hero-compact {
+  max-width: 760px;
+  margin-bottom: 1.8rem;
+}
+
+.hero-compact .hero-title {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  margin-bottom: 0.6rem;
+}
+
+.hero-compact .hero-copy {
+  font-size: 0.94rem;
+}
+
+/* Navigation ---------------------------------------------------------------- */
+.tab-nav {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.6rem clamp(1.25rem, 4vw, 3.5rem);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.tab-link {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: none;
+  background: none;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab-link:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.tab-link-active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.tab-link-active:hover {
+  background: var(--primary-deep);
+  color: #fff;
+}
+
+/* Not a section — the invite action is pushed to the end of the tab row. */
+.tab-link-action {
+  margin-left: auto;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.tab-glyph {
+  font-size: 1rem;
+}
+
+.tab-label-short {
+  display: none;
+}
+
+/* Tab headings --------------------------------------------------------------- */
+.tab-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.6rem;
+}
+
+.tab-title {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.tab-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+/*
+ * The actions beside a page title. Both sides of the header are allowed to shrink
+ * (`min-width: 0` here and on the title block), and a button is capped at the row
+ * it sits in, so a long label wraps or narrows rather than pushing itself past the
+ * edge of the screen — which is what a header with a wide primary button on a
+ * narrow screen does otherwise, and it is unreachable there.
+ */
+.tab-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tab-actions > * {
+  max-width: 100%;
+}
+
+.tab-header > div {
+  min-width: 0;
+}
+
+.section-title {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  margin: 0 0 0.9rem;
+}
+
+.home-section {
+  margin-bottom: 2.6rem;
+}
+
+/*
+ * The doorway note, under the category grid a visitor is shown. The categories say
+ * what the app is for; this says what an account is for, and is the only thing on
+ * the page asking for anything.
+ */
+.join-note {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  padding: 1.4rem 1.3rem;
+  text-align: center;
+}
+
+.join-note .section-title {
+  margin-top: 0;
+}
+
+.join-note .section-note {
+  margin: 0 auto;
+  max-width: 34rem;
+  font-size: 0.95rem;
+}
+
+.join-note-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+
+.muted {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* Sub-tabs (Learn, My Library) ---------------------------------------------- */
+.sub-tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+
+.sub-tab {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.sub-tab-active {
+  background: var(--ivory-deep);
+  border-color: var(--terracotta);
+  color: var(--terracotta-deep);
+}
+
+/* Home shortcuts ------------------------------------------------------------ */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  gap: 0.9rem;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.shortcut:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.shortcut-glyph {
+  font-size: 1.35rem;
+}
+
+/*
+ * A shortcut built from a circle's categories says two things rather than one:
+ * the category it adds to, and what adding to it is called there ("+ Add a
+ * recipe"). Stacked, so the category name stays the thing the eye lands on.
+ */
+.shortcut-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.shortcut-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.shortcut-action {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* Activity feed ------------------------------------------------------------- */
+/*
+ * The feed mixes six kinds of things, so it carries its own controls: chips to
+ * show one topic at a time, and a sort that switches between date and topic.
+ */
+.feed-controls {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.2rem;
+}
+
+.topic-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.feed-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.feed-sort select {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.feed-sort select:focus {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 1px;
+}
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.feed-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.9rem;
+  align-items: start;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feed-row:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-lift);
+}
+
+.feed-glyph {
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
+
+.feed-body {
+  min-width: 0;
+}
+
+.feed-kind {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/*
+ * On Home the title is the top line of the row — the kind of thing is the glyph
+ * beside it rather than a word above it — so the "Private" tag it used to sit
+ * under now sits beside it.
+ */
+.feed-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+
+/* A category page's rows still name the kind above the title, because that line
+   also carries the shelf a share sits on. It keeps the gap it always had. */
+.feed-kind + .feed-title {
+  margin-top: 0.2rem;
+}
+
+.feed-detail {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+/*
+ * Where a share is filed, written out in full — "Recipes › Vegetarian › South
+ * Indian › Karnataka". Quiet, because it answers a question the reader may not
+ * have asked, and only drawn when the filing says something the row does not.
+ */
+.feed-trail {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+/* A feed row is scanned rather than read, so its byline is the quietest line on
+   it — the title above has already earned the reader's eye. */
+.feed-row .byline {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+/*
+ * The controls on the right of a row: read or play it, save it, and the ⋮. Two of
+ * the three are now single icons, so they sit in a line rather than in a stack —
+ * three left-aligned items of three different widths was what a column of them
+ * looked like, and a tidy row of squares is both smaller and easier to aim at.
+ */
+.feed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+/* Cards -------------------------------------------------------------------- */
+/*
+ * `min(320px, 100%)` rather than a bare 320px: on a narrow phone the track would
+ * otherwise be wider than the column it sits in and the whole page would scroll
+ * sideways. The same rule is applied to every auto-fill grid in this file.
+ */
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.35rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.card-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.byline {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.card-audio {
+  width: 100%;
+  height: 36px;
+  margin-top: 0.5rem;
+}
+
+/*
+ * The words of a song, and the same words in another script. The original and the
+ * rendering are drawn the same way on purpose — one is not a footnote of the other —
+ * and both keep their line breaks, which is why they are <pre> rather than <p>.
+ */
+.lyrics-block,
+.discussion-block {
+  margin-top: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+/* The one line a card shows: "▸ Details — the words, and 3 scripts to read them
+   in". A verse is thirty lines long, so the card offers it rather than printing it. */
+.details-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--terracotta-deep);
+  cursor: pointer;
+}
+
+.details-toggle:hover .details-toggle-label {
+  text-decoration: underline;
+}
+
+.details-toggle-note {
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.lyrics-details,
+.discussion-details {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+
+/* The panel already sits below a rule of its own inside a collapsed block, so it does
+   not draw a second one — two lines a hair apart read as a mistake rather than as two
+   sections. */
+.discussion-details .discussion-panel {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/*
+ * The scripts a recording's words can be read in, as one row of tabs over one lyrics
+ * area: "Original | देवनागरी | தமிழ் | తెలుగు | ಕನ್ನಡ". They were links opening a second
+ * block under the original, which printed the same song twice and made a reader scroll
+ * past the words to reach the words. A tab bar is the honest shape for one thing shown
+ * several ways, and the rule under it is what makes the selected one read as selected
+ * rather than merely emphasised.
+ *
+ * No label sits over the row on purpose: a row of script names in their own letters is
+ * self-describing, and "READ THIS IN" above it was a line of chrome saying what the
+ * choices already say.
+ */
+.script-tabs {
+  display: flex;
+  gap: 0.15rem;
+  margin-top: 0.7rem;
+  border-bottom: 1px solid var(--line);
+  /*
+   * The row scrolls sideways rather than wrapping, at every width rather than under a
+   * breakpoint: how many tabs there are is how many scripts the circle switched on and
+   * the author ticked, which can be two or twenty, so there is no width at which the
+   * row is known to fit. Wrapping a tab bar onto a second line reads as two rows of
+   * something rather than as one set of choices, and a row cut off at the edge of a
+   * phone would hide a script somebody reads.
+   */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.script-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.script-tab {
+  /* 40px tall, which is the floor for a chip-sized tap target on a phone. */
+  min-height: 40px;
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.script-tab:hover {
+  color: var(--terracotta-deep);
+}
+
+/* The selected script, said twice over — the ink it is written in and the rule it
+   sits on — because which one is open is the only thing this row has to communicate. */
+.script-tab-on {
+  color: var(--terracotta-deep);
+  border-bottom-color: var(--terracotta);
+}
+
+/*
+ * Which script the area below is showing, in words. The tabs carry the native
+ * spelling, which is what a reader of that script looks for and nothing at all to
+ * anybody else, so this is the line that names it in English.
+ */
+.lyrics-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.55rem 0 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+/* The one area the words are read in, whichever script is selected. */
+.lyrics-view {
+  margin-top: 0.1rem;
+}
+
+.lyrics-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+}
+
+.lyrics-body {
+  margin: 0.45rem 0 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  color: var(--ink);
+}
+
+.lyrics-scripts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.85rem;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+
+/* "Read this in" — what the row of script buttons beside it is for. */
+.lyrics-scripts-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* The section that opens under the song when a script is asked for. */
+.lyrics-rendered {
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Only the member who shared it sees this, because only they can act on it. */
+.lyrics-nudge {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.owner-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+/* The question a delete asks before it goes through, where one is worth asking. */
+.owner-confirm {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.chip-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: 999px;
+  /* 36px minimum, which is a comfortable tap on a phone without making a row of
+     chips look like a row of buttons on a desktop. */
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.chip-button:hover {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+  background: var(--surface-tint);
+}
+
+.chip-strong {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.chip-strong:hover {
+  background: var(--primary-deep);
+  border-color: var(--primary-deep);
+  color: #fff;
+}
+
+.chip-active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+
+.chip-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.chip-danger:hover {
+  border-color: var(--danger);
+  color: #fff;
+  background: var(--danger);
+}
+
+/*
+ * An icon button: the same chip reduced to a square, for the four actions whose
+ * meaning is carried better by a shape than by a word — edit, delete, play and
+ * save. There is no text inside one, so every use has to pass an `aria-label`
+ * and a `title`; the label is what a screen reader reads and the title is the
+ * tooltip a mouse gets. `.icon-button` alone is the quiet default, and the
+ * modifiers below are the same three states a chip has.
+ */
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.icon-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+  background: var(--surface-tint);
+}
+
+/*
+ * The refresh button while it is reading. A slow rotation rather than a spinner
+ * swap, so the icon never leaves the button and the header does not reflow; and
+ * it is switched off under `prefers-reduced-motion`, where the disabled state and
+ * the "Refreshing…" tooltip already say the same thing without moving anything.
+ */
+.icon-button.is-refreshing {
+  color: var(--primary-deep);
+  border-color: var(--primary);
+  opacity: 1;
+}
+
+.icon-button.is-refreshing svg {
+  animation: icon-spin 0.9s linear infinite;
+}
+
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-button.is-refreshing svg {
+    animation: none;
+  }
+}
+
+.icon-button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* The one action a card leads with — playing a recording — is filled in. */
+.icon-button-strong {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.icon-button-strong:hover:not(:disabled) {
+  border-color: var(--primary-deep);
+  background: var(--primary-deep);
+  color: #fff;
+}
+
+/* Saved, and the toggle that undoes it: the bookmark fills in rather than
+   changing shape, so the button never moves under the finger. */
+.icon-button-on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+
+.icon-button-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+}
+
+.icon-button-danger[aria-pressed="true"] {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+}
+
+.icon-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+}
+
+/* An icon inside an ordinary chip or button, beside its words. */
+.chip-button svg,
+.btn svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+.btn svg {
+  vertical-align: -0.18em;
+}
+
+.tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+
+.tag-private {
+  border-color: var(--terracotta);
+  color: var(--terracotta-deep);
+}
+
+.tag-done {
+  border-color: var(--gold);
+  background: rgba(37, 99, 235, 0.2);
+  color: var(--terracotta-deep);
+}
+
+/* Fun facts and words ------------------------------------------------------ */
+.fact-card .fact-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.fact-body {
+  margin: 0.5rem 0 0.3rem;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.word-label {
+  margin: 0.55rem 0 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.word-body {
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.word-example {
+  margin: 0.15rem 0 0;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.word-learned {
+  border-color: var(--gold);
+}
+
+/* Word Explorer ------------------------------------------------------------ */
+.word-explorer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.4rem;
+}
+
+.word-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.word-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.word-row:hover {
+  transform: translateX(2px);
+  border-color: var(--gold);
+}
+
+.word-row-name {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.word-row-chevron {
+  margin-left: auto;
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+}
+
+/* The first language connection, on the row: a hint at what is inside rather than
+   a second heading, so it stays quieter than the word itself. */
+.word-row-connection {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 45%;
+}
+
+.word-page {
+  gap: 0.2rem;
+}
+
+.word-page-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.word-page-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.7rem;
+  line-height: 1.15;
+}
+
+.word-section {
+  margin-top: 0.55rem;
+}
+
+.word-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+}
+
+.word-chip {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.85rem;
+}
+
+/* Language connections ----------------------------------------------------- */
+.connection-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(11rem, 100%), 1fr));
+  gap: 0.6rem;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0;
+}
+
+.connection {
+  position: relative;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.connection-language {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.connection-term {
+  margin: 0.15rem 0 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.05rem;
+}
+
+.connection-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.connection-byline {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.connection-remove {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.4rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--terracotta-deep);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.connection-remove:hover {
+  border-color: var(--terracotta);
+}
+
+.connection-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.connection-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* A connection being typed on the add-word form, before the word exists. */
+.connection-field {
+  gap: 0.5rem;
+}
+
+.connection-draft {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 2.2rem 0.9rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+/* Books -------------------------------------------------------------------- */
+.book-author {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.stars {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+
+.stars-off {
+  color: var(--line);
+}
+
+.book-review {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.book-quote {
+  margin: 0.6rem 0 0;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--gold);
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* One quote on the card; the rest behind the count button below it. */
+.book-quotes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.quote-count-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ivory-deep);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.quote-count-btn:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+/* The badge that carries the number of lines, in the form and on the card. */
+.quote-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--ivory);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.quote-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* The repeatable "line worth remembering" rows in the book form. */
+.quotes-field {
+  gap: 0.55rem;
+}
+
+.quotes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.quotes-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.quote-add {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--terracotta);
+  background: transparent;
+  color: var(--terracotta);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.quote-add:hover:not(:disabled) {
+  background: var(--terracotta);
+  color: var(--ivory);
+}
+
+.quote-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quote-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.quote-row textarea {
+  flex: 1;
+}
+
+.quote-remove {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-top: 0.15rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.quote-remove:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.buy-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rating-field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.rating-field legend {
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.rating-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.3rem;
+}
+
+.star {
+  border: 0;
+  background: none;
+  padding: 0 0.1rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--line);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.star:hover {
+  transform: scale(1.12);
+}
+
+.star-on {
+  color: var(--gold);
+}
+
+/* Songs: the list, and one song's own page --------------------------------- */
+
+/*
+ * A list of recordings answers one question — which one? — so it is a table of four
+ * columns rather than a stack of cards. Everything a song carries used to sit on its
+ * card, which turned eight songs into a page nobody could scan; the words, the scripts,
+ * the pictures and the discussion all live on the song's own page now, behind Details.
+ */
+.song-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.song-rows-head,
+.song-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10rem 7.5rem auto;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  padding: 0.7rem 0.95rem;
+}
+
+.song-rows-head {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.song-row + .song-row {
+  border-top: 1px solid var(--line);
+}
+
+.song-row:hover {
+  background: var(--surface);
+}
+
+/* The title is the way in as well as the label, so it is a button that reads as text. */
+.song-row-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.song-row-title:hover {
+  color: var(--terracotta-deep);
+}
+
+.song-row-by,
+.song-row-date {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.song-row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+/* The player opens under the row it belongs to rather than taking the reader away. */
+.song-row-audio {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 36px;
+  margin-top: 0.2rem;
+}
+
+.song-detail {
+  max-width: 46rem;
+}
+
+.song-detail-audio {
+  width: 100%;
+  height: 40px;
+  margin: 0.9rem 0 0.2rem;
+}
+
+/*
+ * The words on the song's own page, where there is nothing to unfold: somebody who
+ * asked for Details has already said the words are what they came for.
+ */
+.lyrics-panel {
+  margin: 1.2rem 0;
+  padding: 0.9rem 1.05rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.lyrics-panel .section-title {
+  margin-top: 0;
+}
+
+/* Recipe detail ------------------------------------------------------------ */
+.recipe-detail {
+  max-width: 46rem;
+}
+
+.bullet-list,
+.step-list {
+  margin: 0 0 1.4rem;
+  padding-left: 1.3rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.bullet-list li::marker {
+  color: var(--gold);
+}
+
+.step-list li::marker {
+  color: var(--terracotta);
+  font-weight: 700;
+}
+
+.recipe-notes {
+  margin: 0 0 1.4rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* Traditional remedies ------------------------------------------------------ */
+.remedy-used-for {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.remedy-lineage {
+  margin: 0;
+  font-size: 0.86rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.remedy-detail .remedy-used-for {
+  margin-bottom: 0.4rem;
+}
+
+/*
+ * Remedies touch on health, so the note travels with them: on the tab, on the
+ * detail page, in the form, and in My Library. Quiet but never hidden.
+ */
+.health-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin: 0 0 1.6rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.health-note p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.health-note-glyph {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--terracotta-deep);
+}
+
+.health-note-compact {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+}
+
+.health-note-compact p {
+  font-size: 0.76rem;
+}
+
+.remedy-detail .health-note {
+  margin: 1.6rem 0 0;
+}
+
+/*
+ * Discussions and likes on a book ------------------------------------------
+ *
+ * A book has no page of its own, so the counts sit on the card and the threads
+ * open underneath them in place. Both counts are buttons: one expands, the other
+ * is the like itself.
+ */
+.conversation {
+  margin: 0.55rem 0 0;
+}
+
+.conversation-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.count-chip {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.32rem 0.75rem;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.count-chip:hover:not(:disabled) {
+  border-color: var(--terracotta);
+  color: var(--terracotta-deep);
+}
+
+.count-chip:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.count-chip-on {
+  border-color: var(--gold);
+  background: rgba(37, 99, 235, 0.2);
+  color: var(--terracotta-deep);
+}
+
+.discussion-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.discussion {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.discussion-head {
+  position: relative;
+  padding-right: 1.8rem;
+}
+
+.discussion-prompt {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.discussion-byline {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.discussion-joined {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+/* What the model made of a long thread, kept plainly apart from what people wrote. */
+.discussion-summary {
+  margin-top: 0.7rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.discussion-summary-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+}
+
+.discussion-summary ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.discussion-summary li::marker {
+  color: var(--gold);
+}
+
+.reply-list {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reply {
+  position: relative;
+  padding: 0.6rem 2rem 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.reply-body {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.reply-byline {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.discussion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.discussion-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/*
+ * Experiences and tips ------------------------------------------------------
+ *
+ * What happened when somebody actually cooked the recipe or made the remedy,
+ * plus whatever else they added of their own.
+ */
+.experience-count {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.experience-section {
+  margin: 1.6rem 0 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.experience-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.experience-list {
+  list-style: none;
+  margin: 0 0 0.8rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.experience {
+  position: relative;
+  padding: 0.75rem 2.1rem 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.experience-body {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.experience-byline {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.experience-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.experience-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.experience-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* Recorder ----------------------------------------------------------------- */
+.recorder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.recorder-clock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.05rem;
+}
+
+.recorder-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--terracotta);
+  animation: pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.recorder-buttons {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.recorder-preview {
+  width: 100%;
+  height: 36px;
+}
+
+/* Profile ------------------------------------------------------------------ */
+.profile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  padding: 1.4rem;
+  margin-bottom: 2.2rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-soft);
+}
+
+/* The column beside the avatar grows when the account panel is open, so it takes
+   the width rather than letting a form squeeze itself into what is left. */
+.profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(155deg, var(--terracotta), var(--terracotta-deep));
+  color: var(--ivory);
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.5rem;
+}
+
+.profile-name {
+  margin: 0 0 0.25rem;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+/* Changing the login, in the card that shows it. Two plain links until one of
+   them is asked for, so the card stays a card until somebody wants a form. */
+.account-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+
+.account-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.account-actions .btn {
+  margin: 0;
+}
+
+.account-form .link-forgot {
+  align-self: flex-start;
+  margin-top: 0;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  cursor: pointer;
+  text-align: left;
+}
+
+.stat:hover {
+  border-color: var(--terracotta);
+}
+
+.stat-value {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--terracotta-deep);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--ink-soft);
+}
+
+.empty-glyph {
+  font-size: 2.5rem;
+  color: var(--gold);
+  margin: 0 0 0.5rem;
+}
+
+.empty-state h2 {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  margin: 0 0 0.4rem;
+  color: var(--ink);
+}
+
+.page-error {
+  margin-bottom: 1.5rem;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+}
+
+/* Bell */
+.bell-wrap {
+  position: relative;
+}
+
+.bell-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--terracotta);
+  color: var(--ivory);
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.05rem 0.35rem;
+  min-width: 18px;
+  text-align: center;
+}
+
+.bell-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  width: 300px;
+  /* A short viewport — a phone held sideways — must not push the list past the
+     bottom of the page, which is clipped: the panel scrolls inside instead. */
+  max-height: 340px;
+  max-height: min(340px, calc(100dvh - 7rem));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background: var(--ivory);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  z-index: 40;
+}
+
+.bell-heading {
+  margin: 0 0 0.7rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--terracotta-deep);
+  font-weight: 700;
+}
+
+.bell-empty {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.bell-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.bell-list li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.bell-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--gold);
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+}
+
+.bell-list p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.bell-list time {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+/* Modals */
+/*
+ * The bottom sheet: the ⋯ on a circle card, and the way a phone shows a list of
+ * actions. It is a cousin of the modal below rather than a variant of it — a
+ * modal is centred and is a form, and this is anchored to the bottom of the
+ * screen and is a list of taps, which is where a thumb actually is.
+ *
+ * It is the same shape on a desktop, where it reads as a small panel over the
+ * bottom of the window. One markup for every width is this stylesheet's rule
+ * (nothing is conditionally rendered by width), and a sheet is a perfectly good
+ * menu with a mouse.
+ */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 110;
+  animation: fade-in 0.18s ease;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 460px;
+  background: var(--ivory);
+  /* Square at the bottom, rounded at the top: the panel belongs to the edge of
+     the screen rather than floating above it. */
+  border-radius: 22px 22px 0 0;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  box-shadow: 0 -20px 50px -20px rgba(15, 23, 42, 0.45);
+  padding: 0.5rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 80vh;
+  max-height: 80dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: sheet-rise 0.2s ease;
+}
+
+@keyframes sheet-rise {
+  from {
+    transform: translateY(12%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* The grab handle. It does nothing, and it is what says which edge this panel
+   belongs to before anybody reads a word of it. */
+.sheet-grip {
+  width: 2.4rem;
+  height: 4px;
+  margin: 0.3rem auto 0.5rem;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+.sheet-head {
+  padding: 0 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The subject, because a sheet with no header on a page of near-identical cards
+   is a menu with nothing to say which card it came from. */
+.sheet-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+
+.sheet-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+
+.sheet-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  /* A full-width row, 52px tall: this is the one place in the app where every
+     control is meant to be hit with a thumb without looking. */
+  min-height: 52px;
+  padding: 0.6rem 0.5rem;
+  border: none;
+  background: none;
+  border-radius: 14px;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sheet-action:hover,
+.sheet-action:focus-visible {
+  background: var(--surface-tint);
+}
+
+.sheet-action-danger {
+  color: var(--danger);
+}
+
+.sheet-action-glyph {
+  font-size: 1.1rem;
+  width: 1.6rem;
+  text-align: center;
+  flex: none;
+}
+
+.sheet-action-label {
+  flex: 1;
+}
+
+.sheet-action-note {
+  flex: none;
+}
+
+/* Full width and plain: the way out of the sheet, separated from the actions so
+   it is never mistaken for one of them. */
+.sheet-cancel {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.35rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--surface);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.sheet-cancel:hover {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 1rem;
+  animation: fade-in 0.18s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: var(--ivory);
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px -20px rgba(15, 23, 42, 0.5);
+  padding: 2rem 2rem 1.75rem;
+  /* Never taller than the viewport: the body below takes the overflow. */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
+/*
+ * The scroll area. Long forms — a book with several quotes, for instance — stay
+ * usable on a phone because the submit button scrolls into reach instead of
+ * being clipped off the bottom of the dialog.
+ */
+.modal-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* Bleed to the dialog edges so the scrollbar sits outside the fields. */
+  margin: 0 -2rem -1.75rem;
+  padding: 0.25rem 2rem 1.75rem;
+}
+
+/*
+ * The dismiss ×, sized as a target rather than as a character. A 1.4rem glyph is
+ * about 14 square pixels of hittable area in the corner a thumb reaches for
+ * least accurately, so the button is 2.5rem square and the glyph is centred in
+ * it: the same thing to look at, four times easier to hit.
+ */
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.modal-close:hover:not(:disabled) {
+  background: var(--surface-tint);
+  color: var(--text);
+}
+
+.modal-eyebrow {
+  margin: 0 0 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.modal-title {
+  margin: 0 0 1.3rem;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/*
+ * The front door: the providers, a rule with "or" through it, and one field.
+ *
+ * The whole point of the screen is that there is very little on it, so the rules
+ * here are about restraint rather than decoration — a provider button is the full
+ * width of the panel and looks like every other outlined button in the app, the
+ * divider is a line rather than a graphic, and the lede is one sentence.
+ */
+.auth-lede {
+  margin: -0.8rem 0 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+.auth-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Deliberately worded rather than badged: no brand marks are drawn in
+   `Icons.tsx`, and a control that wants a glyph nobody has drawn is still a
+   worded button. */
+.btn-provider {
+  width: 100%;
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.btn-provider:hover {
+  border-color: var(--primary);
+  color: var(--primary-deep);
+  background: var(--surface-tint);
+}
+
+/* "──── or ────": the word sits in the gap rather than on top of the line, so
+   nothing has to match the panel's background colour to hide the rule behind it. */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.1rem 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* The quieter half of the "check your inbox" screen: where to look if nothing
+   turned up. */
+.auth-hint {
+  margin: -0.4rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+/* The resend button spends its first minute disabled, which is long enough that
+   it has to look it rather than only say so. */
+.auth-form .btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.field input,
+.field textarea,
+.field select {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 1px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.visibility-picker {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  margin: 0;
+  background: var(--surface-soft);
+}
+
+.visibility-picker legend {
+  padding: 0 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.visibility-picker label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--ink);
+  padding: 0.2rem 0;
+  cursor: pointer;
+}
+
+.field-file input {
+  padding: 0.55rem;
+  font-size: 0.82rem;
+}
+
+/*
+ * The way out of a picker that has greyed out the very file the member came for.
+ * It reads as a hint rather than a button because it is an aside — almost nobody
+ * needs it — but it is a real tap target, so it keeps the 44px height a phone
+ * needs and the underline that says it can be tapped at all.
+ */
+.widen-picker {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0.4rem 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.field-password {
+  position: relative;
+  display: flex;
+}
+
+.field-password input {
+  flex: 1;
+  padding-right: 2.6rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.3rem;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+/* "Keep me logged in" and "Forgot password?", on one line under the password. */
+.auth-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: -0.35rem;
+}
+
+.auth-keep {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.auth-keep input {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  margin: 0;
+}
+
+/* The link is written to sit on its own at the end of the form; in this row it
+   is one of two things on a line, so the nudges it carries are undone. */
+.auth-options .link-forgot {
+  align-self: center;
+  margin-top: 0;
+}
+
+.link-forgot {
+  align-self: flex-end;
+  margin-top: -0.5rem;
+  border: none;
+  background: none;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.form-notice {
+  color: var(--terracotta-deep);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.link-toggle {
+  display: block;
+  margin: 1.2rem auto 0;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Written for one link under a form. A screen offering two ways out stacks them
+   closer, and one that sits inside the form's own flex column already has the
+   gap. */
+.link-toggle + .link-toggle {
+  margin-top: 0.5rem;
+}
+
+.auth-form .link-toggle {
+  margin-top: 0;
+}
+
+.field-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
+/*
+ * "📁 Sharing into Austin Madhwa Sangha › Madhwa Festivals › Krishna
+ * Janmashtami" at the top of a share form opened from inside a folder. It sits
+ * where the "File under" pair would have been and has to read as a statement
+ * rather than as a control, so it is a filled strip rather than a label: quieter
+ * than a field and louder than a hint, since it is the answer to a question the
+ * form is no longer asking.
+ */
+.sharing-into {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.sharing-into strong {
+  color: var(--ink);
+  font-weight: 650;
+  overflow-wrap: break-word;
+}
+
+.upload-progress {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.upload-progress-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--gold), var(--terracotta));
+  opacity: 0.35;
+  transition: width 0.25s ease;
+}
+
+.upload-progress-label {
+  position: relative;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.collection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.6rem;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 26rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+}
+
+.search-field:focus-within {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 1px;
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.search-field input:focus {
+  outline: none;
+}
+
+.search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.collection-count {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Invites ------------------------------------------------------------------ */
+.invite-list {
+  list-style: none;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.invite-row {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.invite-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.invite-who {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.02rem;
+}
+
+.invite-tag-pending {
+  border-color: var(--gold);
+  color: var(--terracotta-deep);
+}
+
+.invite-tag-accepted {
+  border-color: var(--terracotta);
+  background: rgba(37, 99, 235, 0.14);
+  color: var(--terracotta-deep);
+}
+
+.invite-tag-revoked {
+  opacity: 0.7;
+}
+
+.invite-share {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.invite-link {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.invite-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.invite-share-actions a.chip-button {
+  text-decoration: none;
+}
+
+/* One block per person on the form, and one per link on the way out. */
+.invite-contact {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.9rem 1rem 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.invite-contact legend {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0 0.35rem;
+}
+
+.invite-contact .field {
+  margin-bottom: 0.7rem;
+}
+
+.invite-result + .invite-result {
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+
+.invite-result-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* The invite landing screen ------------------------------------------------ */
+.join-screen {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+}
+
+.join-eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+
+.join-title {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  line-height: 1.12;
+  margin: 0.5rem 0 1rem;
+}
+
+.join-note {
+  margin: 0 0 1.1rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--gold);
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.join-copy {
+  margin: 0 0 1.2rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.join-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.join-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.join-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.4rem;
+}
+
+.join-footnote {
+  margin: 1.5rem 0 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* A share arriving from the device's own share sheet ----------------------- */
+/* The same measure again, and for the third version of the same reason: it is a
+   screen somebody is sent to with nothing around it, and it is a column of
+   fields, which reads badly at any width a paragraph does not. */
+.incoming-screen {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+}
+
+/* The chooser sits in a `.join-actions` row, which lays out a primary button and
+   a text button side by side. Its default bottom margin would leave a gap above
+   the footnote under it, so the row this screen ends on keeps its own. */
+.incoming-screen .join-actions {
+  margin-top: 0.4rem;
+}
+
+/* One shared item, read by whoever was handed the link --------------------- */
+/* The same measure as the invite landing screen, because it is the other thing
+   somebody arrives at with no account and nothing around it. */
+.shared-screen {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+}
+
+.shared-title {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+  line-height: 1.15;
+  margin: 0.5rem 0 0.6rem;
+}
+
+.shared-from {
+  margin: 0 0 1.2rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+/* The shelf it sits on, said quietly: it is context rather than somewhere the
+   reader can go, so it must not read as a link. */
+.shared-from-path {
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.shared-item {
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.shared-item > :first-child {
+  margin-top: 0;
+}
+
+.shared-item > :last-child {
+  margin-bottom: 0;
+}
+
+/* What stands in for the item when the circle it came from is invite only. The
+   same card the content would have been in, so the page keeps its shape and the
+   absence reads as deliberate rather than as a failure to load. */
+.shared-locked {
+  text-align: center;
+}
+
+.shared-locked-glyph {
+  margin: 0 0 0.6rem;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.shared-byline {
+  margin: 0.8rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* The offer, after the content and visibly after it: what was shared is the
+   invitation, so the door comes second. */
+.shared-cta {
+  margin-top: 1.8rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.shared-cta-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+  line-height: 1.25;
+}
+
+.shared-cta > p {
+  margin: 0;
+}
+
+/* What is being passed on, named in the share sheet so nobody sends the wrong
+   thing. */
+.share-item-name {
+  margin: 0 0 0.6rem;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+/* Installing the app ------------------------------------------------------- */
+.install-banner {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  width: min(38rem, calc(100vw - 1.5rem));
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--ivory-deep);
+  box-shadow: var(--shadow);
+}
+
+.install-banner-glyph {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: linear-gradient(155deg, var(--terracotta), var(--terracotta-deep));
+  color: var(--ivory);
+}
+
+.install-banner-copy {
+  flex: 1;
+}
+
+.install-banner-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+}
+
+.install-banner-text {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.install-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.install-steps {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.install-steps strong {
+  color: var(--ink);
+}
+
+/* Notifications addressed to one member ----------------------------------- */
+.bell-dot-you {
+  background: var(--terracotta);
+}
+
+.bell-tag-you {
+  display: inline-block;
+  margin-bottom: 0.25rem;
+  border-color: var(--terracotta);
+  color: var(--terracotta-deep);
+}
+
+.bell-link {
+  display: block;
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: inherit;
+  text-decoration: none;
+}
+
+.bell-link:hover {
+  text-decoration: underline;
+}
+
+/* Circles ------------------------------------------------------------------ */
+/*
+ * A circle is a group of people with a shared interest, so its surfaces lean on
+ * two things: the mark the owner chose, and who else is in it.
+ */
+.section-note {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.feed-selects {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/*
+ * How wide the feed reaches: the circle in view, or all of them. Two buttons
+ * rather than a list of circles, because which circle the page is about is asked
+ * once, in the header dropdown, and a second picker here only repeated it.
+ */
+.feed-scope {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Which circles a post came from, on a feed row or a card byline. */
+.circle-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-left: 0.45rem;
+  vertical-align: middle;
+}
+
+.circle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.55);
+  background: rgba(37, 99, 235, 0.14);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+}
+
+.circle-chip-link {
+  cursor: pointer;
+}
+
+.circle-chip-link:hover {
+  border-color: var(--terracotta);
+  background: rgba(37, 99, 235, 0.14);
+}
+
+/* Ticking circles inside a share form. */
+.circle-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+
+/* Ticking a fixed list of answers — a recipe's menu types, where more than one
+   applies. It wraps rather than scrolling, the list being five answers long and
+   known in advance, and otherwise borrows the rules below so two tick-lists on
+   one form do not read as two different kinds of question. */
+.tick-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.4rem;
+}
+
+.circle-choice,
+.tick-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.circle-choice:hover,
+.tick-choice:hover {
+  background: var(--surface);
+}
+
+.circle-choice-on,
+.tick-choice-on {
+  border-color: var(--gold);
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.circle-choice-icon {
+  font-size: 1rem;
+}
+
+.circle-choice-name,
+.tick-choice-name {
+  font-weight: 700;
+}
+
+/* Choosing the mark for a new circle. */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr));
+  gap: 0.35rem;
+}
+
+.icon-option {
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.icon-option:hover {
+  border-color: var(--terracotta);
+}
+
+.icon-option-on {
+  border-color: var(--terracotta);
+  background: var(--ivory-deep);
+  box-shadow: inset 0 0 0 1px var(--terracotta);
+}
+
+.icon-own {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.icon-own input {
+  width: 4rem;
+  text-align: center;
+  font-size: 1.05rem;
+  padding: 0.4rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.field-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.cover-preview {
+  width: 100%;
+  max-height: 9rem;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.cover-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* The file input itself is hidden; the label around it is the button. */
+.cover-pick {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cover-pick input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.privacy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.35rem 0;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.privacy-option span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.privacy-option strong {
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.privacy-option small {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+/* The checkbox list of people to invite. */
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-height: 13rem;
+  overflow-y: auto;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.contact-row:hover {
+  background: var(--surface);
+}
+
+.contact-row-on {
+  border-color: var(--gold);
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.circle-section {
+  margin-bottom: 2.4rem;
+}
+
+/* The search sits inside the section now, under its heading and above its list,
+   so it needs the gap the heading used to leave. */
+.circle-section .search-field {
+  margin-bottom: 1rem;
+}
+
+/*
+ * The head count in a circle's header, which is the way to that circle's roll now
+ * that the page does not carry one. It is a button, so it needs the sentence
+ * around it back: `.btn-text` is bolder and larger than `.circle-meta`, and a word
+ * in the middle of a line that is a different size from its neighbours reads as a
+ * mistake rather than as a link.
+ */
+.circle-meta-link {
+  font-size: inherit;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
+}
+
+/*
+ * Admin tools: the housekeeping a keeper opens on purpose. It is set apart from
+ * the circle's own content because that is the whole point of it being behind a
+ * button — the page above is what people shared, and this is the paperwork.
+ */
+.admin-tools {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-tint);
+  padding: 1.1rem 1.2rem 1.3rem;
+}
+
+/* Each thing inside it is a heading of its own, so they need air between them —
+   and the first one must not push away from the note above it. */
+.admin-tools h3.section-title {
+  margin: 1.6rem 0 0.6rem;
+  font-size: 0.95rem;
+}
+
+.admin-tools h3.section-title:first-of-type {
+  margin-top: 0.9rem;
+}
+
+.admin-tools .section-note {
+  margin: 0 0 0.8rem;
+}
+
+/* A count badge sitting inside a button or a heading has to be given the space
+   its own markup does not: a `<span>` straight after text has no gap of its own. */
+.btn > .tag,
+.admin-tools h3.section-title > .tag {
+  margin-left: 0.45rem;
+  vertical-align: middle;
+}
+
+.circle-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: 1.1rem;
+}
+
+.circle-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.2rem 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.circle-cover {
+  width: 100%;
+  height: 7rem;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+
+.circle-cover-wide {
+  height: 11rem;
+  margin-bottom: 1rem;
+}
+
+.circle-card-head {
+  display: flex;
+  /* Centred rather than top-aligned: the name and the ⋯ beside it are one row,
+     and the ⋯ hanging off the top of a two-line name read as a stray. */
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* Takes the slack, so the ⋯ sits at the right edge whatever the name's length. */
+.circle-card-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * The name as a control. It inherits everything from the heading around it, so
+ * it reads as the name and not as a button — the card is the affordance, and a
+ * second one inside it would be saying the same thing twice. It exists for the
+ * keyboard: without it there is nothing on a tappable card that Tab can reach.
+ */
+.circle-name-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The card already draws the ring, so the name does not draw a second one. */
+.circle-name-button:focus-visible {
+  outline: none;
+}
+
+/* Up in the corner with the name, and out of the way of it: `flex: none` so a
+   long circle name shortens rather than squeezing the button. */
+.circle-card-more {
+  flex: none;
+  align-self: flex-start;
+}
+
+.circle-icon {
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.circle-icon-large {
+  font-size: 2.4rem;
+}
+
+.circle-name {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.circle-meta {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+
+.circle-description {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/*
+ * Two lines of description on a card and no more. A card in this list is a door
+ * rather than the page behind it, and a circle whose owner wrote three
+ * paragraphs used to push every other card off a phone screen. The full text is
+ * on the circle's own page, one tap away.
+ */
+.circle-card .circle-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.circle-owner {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.circle-card-note {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+}
+
+.circle-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.circle-header {
+  margin-bottom: 1.8rem;
+}
+
+.circle-header-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.circle-header-text {
+  flex: 1 1 16rem;
+  /* A pasted address or a long circle name shrinks the block rather than
+     widening the row and pushing the corner button off the screen. */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Up in the corner beside the name, exactly where a circle card keeps its own:
+   `flex: none` so a long name shortens rather than squeezing the button, and
+   `margin-left: auto` so it stays on the right when the text does not fill the
+   row. Everything a member can do to the circle is behind it. */
+.circle-header-more {
+  flex: none;
+  align-self: flex-start;
+  margin-left: auto;
+}
+
+.circle-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/*
+ * The circle the home page is built from — one line, and none at all in Discover.
+ * It was a bordered card with the circle's name, head count, keeper and
+ * description, directly under a header dropdown that had just named the same
+ * circle; what is left is the part a member could not already see, and it is
+ * deliberately not a card, so the tiles below it are the first thing with a border
+ * on the page.
+ */
+.home-circle-strip {
+  display: block;
+  margin-bottom: 1.6rem;
+}
+
+.home-circle-line {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.home-circle-name {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* The head count sits on the line rather than under a title, so it loses the
+   top margin `.circle-meta` carries everywhere else. */
+.home-circle-line .circle-meta {
+  margin: 0;
+}
+
+.home-circle-line .circle-icon {
+  font-size: 1.3rem;
+}
+
+.home-circle-strip .circle-cover-wide {
+  margin-bottom: 0.7rem;
+}
+
+/* My circles on Profile: which one is current, and the way to change it. ------ */
+.my-circles {
+  list-style: none;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.my-circle {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.my-circle-on {
+  border-color: var(--terracotta);
+  background: var(--surface);
+}
+
+.my-circle-text {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.my-circle-name {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.my-circle-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* People waiting at either door, and the members already inside. */
+.pending-list,
+.member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pending-row,
+.member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  font-size: 0.88rem;
+}
+
+.member-row span,
+.pending-row span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/*
+ * The circles a member shares with the reader, on a consolidated roll. They wrap
+ * rather than scroll, since a name and three or four circles is the ordinary
+ * shape of a row and a sideways scroller inside a list row is a trap on a phone.
+ */
+.member-circles {
+  gap: 0.3rem;
+}
+
+.invite-panel {
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+/* The link route sits under the tick-list, separated so it reads as a second way in. */
+.invite-link-block {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.invite-link-block .field {
+  width: 100%;
+  max-width: 22rem;
+}
+
+@media (max-width: 640px) {
+  /*
+   * The phone header, which has to hold four things in about 340 usable pixels:
+   * the mark, the app's name, the circle in view and the account controls.
+   *
+   * It used to stack into two full-width rows, which cost most of the screen
+   * before a single share was visible. Instead the brand and the account controls
+   * share the first line — the strapline goes, being a desktop nicety rather than
+   * anything anybody navigates by — and the circle switcher drops onto the second
+   * line, which is the one control here worth a row of its own: it is what the
+   * whole app is filtered by, and it is now a comfortable tap rather than a pill
+   * squeezed beside a wordmark.
+   *
+   * The `12rem` basis is doing real work. A member has one Profile button beside
+   * the bell and everything fits on the first line; a visitor has "Log in" and
+   * "Create account", which do not, so the actions wrap to a line of their own
+   * rather than crushing the app's name to two words on the one screen where a
+   * stranger is reading it. Flexbox does that arithmetic per viewport, which is
+   * why there is no second breakpoint here guessing at it.
+   */
+  .site-header {
+    gap: 0.55rem 0.75rem;
+    padding: 0.55rem 1rem;
+    padding-top: max(0.55rem, env(safe-area-inset-top));
+  }
+
+  .header-left {
+    flex: 1 1 12rem;
+    min-width: 0;
+    gap: 0.6rem;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    font-size: 0.95rem;
+  }
+
+  .brand-name {
+    font-size: 1.05rem;
+  }
+
+  /* `flex-basis: 100%` inside the wrapping `.header-left` is what claims the row. */
+  .header-circle {
+    flex: 1 1 100%;
+  }
+
+  .header-circle-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .header-actions {
+    flex: 0 0 auto;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  /* Two doors is a lot of words for one line, so they are set smaller here. */
+  .header-actions .btn {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  /*
+   * The bell stays at the right-hand end of its line, so its panel is still
+   * anchored to its right edge — but 300px does not fit a 360px screen once the
+   * page's padding is taken off, and `.page` clips what hangs over, which left the
+   * notifications unreadable until the phone was turned sideways.
+   */
+  .bell-dropdown {
+    width: min(300px, calc(100vw - 2rem));
+  }
+
+  .collection-bar,
+  .word-explorer-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-field {
+    max-width: none;
+  }
+
+  /*
+   * The bar is taken out of the page, so the page has to keep its space: the
+   * footer is the last thing on every screen and the About link is the last line
+   * of it, and without a reserve here it is drawn under a bar that is painted on
+   * top of it. `padding-bottom` on `.page` rather than a margin on the footer
+   * because `box-sizing: border-box` and `min-height: 100dvh` then agree — a
+   * short page still fits the viewport exactly, with the footer sitting above the
+   * bar rather than behind it, and a long one scrolls until the footer clears it.
+   * A margin would instead have added a screenful of empty overscroll to every
+   * short page.
+   */
+  .page {
+    padding-bottom: calc(var(--tab-bar-space) + 0.75rem);
+  }
+
+  /*
+   * The tab row becomes a fixed bottom bar: Home, Members, Circles, My Library.
+   * Four entries share the width, and the invite action steps aside to Profile.
+   */
+  .tab-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    /* The height the page reserves above, so the reserve cannot be short. */
+    min-height: var(--tab-bar-space);
+    padding: 0.4rem 0.2rem calc(0.4rem + env(safe-area-inset-bottom));
+    gap: 0;
+    overflow: visible;
+    border-top: 1px solid var(--line);
+    border-bottom: none;
+    background: var(--ivory);
+    box-shadow: 0 -10px 30px -20px rgba(15, 23, 42, 0.6);
+  }
+
+  .tab-link {
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.45rem 0.1rem;
+    font-size: 0.6rem;
+    border-radius: 14px;
+  }
+
+  .tab-label-short {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tab-link-wide {
+    display: none;
+  }
+
+  .tab-glyph {
+    font-size: 1.15rem;
+  }
+
+  .tab-label {
+    display: none;
+  }
+
+  .tab-label-short {
+    display: inline;
+  }
+
+  .feed-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* The chip row scrolls sideways rather than pushing the sort control off-screen. */
+  .topic-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+  }
+
+  .topic-filter .sub-tab {
+    white-space: nowrap;
+  }
+
+  /*
+   * The same treatment for every other row of shelves and sections — My Library's
+   * seven kinds, the sub-tabs on Learn. Wrapping them
+   * turned four taps into a four-line wall above the content they filter; a
+   * sideways scroll keeps the first ones where they were and says by cutting off
+   * that there are more. `-webkit-overflow-scrolling` is what makes the flick feel
+   * native on iOS, and `overscroll-behavior` stops that flick turning into a page
+   * scroll once the row reaches its end.
+   *
+   * A category's own children are the deliberate exception and opt out with
+   * `.shelf-chips-wrap`: they are as many as the circle invented and named
+   * whatever it liked, so a row of them cut off at the edge hides real places to
+   * look rather than trimming a known list of seven.
+   */
+  .sub-tabs,
+  .shelf-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+  }
+
+  .sub-tabs::-webkit-scrollbar,
+  .shelf-chips::-webkit-scrollbar,
+  .topic-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sub-tabs .sub-tab,
+  .shelf-chips .chip-button {
+    white-space: nowrap;
+  }
+
+  /*
+   * A category's header on a phone: the mark comes down a size and the air under
+   * it comes off again, so the name, the count and the first row of
+   * subcategories are all above the fold on a 320px screen.
+   */
+  .category-header {
+    gap: 0.65rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .category-header .circle-icon-large {
+    font-size: 1.9rem;
+  }
+
+  /*
+   * Under 16px, iOS Safari zooms the whole page in when a field is focused and
+   * does not zoom back out, so a member who tapped a search box is left reading a
+   * magnified app. Every control that takes typing is therefore exactly 16px on a
+   * phone — this is the reason for the rule rather than a preference about size.
+   */
+  .field input,
+  .field textarea,
+  .field select,
+  .search-field input,
+  .header-circle-select,
+  .feed-sort select {
+    font-size: 16px;
+  }
+
+  /* A finger is not a mouse pointer: the smaller controls grow to a real target. */
+  .chip-button {
+    min-height: 40px;
+  }
+
+  /* A step of the trail is a small word in a row of small words, and on a phone
+     it is also the way back up the tree, so it gets a real target. */
+  .shelf-trail-step,
+  .shelf-trail-here {
+    min-height: 40px;
+  }
+
+  .icon-button,
+  .post-menu-button {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .btn-text {
+    padding: 0.5rem 0.4rem;
+  }
+
+  /*
+   * This used to be the bar's clearance, back when the content was the last thing
+   * on the page. `.page` reserves that now, so what is left here is the gap in
+   * front of the footer — 6rem of it was a screenful of blank space between the
+   * last card and the About link.
+   */
+  .content {
+    padding-bottom: 2.5rem;
+  }
+
+  .card-list,
+  .shortcut-grid,
+  .circle-cards {
+    grid-template-columns: 1fr;
+  }
+
+  /*
+   * The circle cards on a phone. What is left of them on this page is the
+   * invitations — the listing itself is `.circle-rows` now, a card being the
+   * wrong shape for a door — and an invitation is a decision rather than a
+   * navigation, so it keeps the cover, the description and its three worded
+   * answers. A third of the padding and a third of the gap go, which fits
+   * another one on a 360px screen without making anything a smaller target.
+   * Which of the two ways of starting a circle is on screen is not decided
+   * here — see the pair of rules on `.tab-header-wide-action` and
+   * `.section-head-narrow-action`, which swap at a wider breakpoint than this
+   * block, because a phone in portrait is not always 640px or less.
+   */
+
+  /* The heading and the action share a line, so the title loses the margin it
+     carries when it is alone above a list. */
+  .section-head .section-title {
+    margin-bottom: 0.6rem;
+  }
+
+  .circle-cards {
+    gap: 0.7rem;
+  }
+
+  .circle-card {
+    padding: 0.85rem 0.95rem;
+    gap: 0.35rem;
+    border-radius: 16px;
+  }
+
+  /* A cover on a card is decoration, and on a phone it is decoration costing a
+     third of the screen — so it is shorter here rather than absent. */
+  .circle-card .circle-cover {
+    height: 5rem;
+  }
+
+  /* The 16rem basis is wider than what is left beside the icon and the ⋯ on a
+     360px screen, and a flex line wraps on hypothetical sizes before anything
+     shrinks — so the corner button would drop onto a row of its own. A smaller
+     basis keeps all three on one line and lets the text grow into whatever is
+     left. */
+  .circle-header-text {
+    flex-basis: 8rem;
+  }
+
+  /* Only ever the Join affordance now, which reads better on its own line than
+     squeezed beside a two-line circle name. */
+  .circle-header-actions {
+    width: 100%;
+  }
+
+  .my-circle {
+    flex-wrap: wrap;
+  }
+
+  .pending-row,
+  .member-row {
+    flex-wrap: wrap;
+  }
+
+  .feed-row {
+    grid-template-columns: auto 1fr;
+  }
+
+  /*
+   * The row loses its third column on a phone, so the controls take a line of
+   * their own under the title and start where the text does rather than hugging
+   * the right-hand edge of the screen.
+   */
+  .feed-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* The bottom tab bar owns the bottom of a phone screen, so the banner sits above it. */
+  .install-banner {
+    bottom: var(--tab-bar-space);
+    flex-wrap: wrap;
+  }
+
+  .install-banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /*
+   * On a phone a form is easily taller than the screen, so the dialog is capped to
+   * the visible viewport — inset by the notch and the home indicator — and its body
+   * scrolls. Without this the submit button sits below the fold, out of reach.
+   */
+  .modal-backdrop {
+    padding: calc(0.75rem + env(safe-area-inset-top)) 0.75rem
+      calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  .modal {
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(
+      100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+    padding: 1.75rem 1.25rem 1.25rem;
+  }
+
+  .modal-body {
+    margin: 0 -1.25rem -1.25rem;
+    padding: 0.25rem 1.25rem 1.25rem;
+  }
+
+  .modal-title {
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+}
+
+/* Categories: what a circle is for, and the shelves inside each one ---------- */
+
+/* A heading with one quiet action on the right — "Manage categories", "All circles". */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-head .section-title {
+  margin-bottom: 0.9rem;
+}
+
+/*
+ * A heading with a real control beside it rather than a quiet text link. The two
+ * are centred on each other and the space under them moves to the row itself,
+ * because baseline-aligning a 40px chip to a 1.15rem heading pushes the heading
+ * down by the chip's own padding and reads as a misprint. On the widths where the
+ * control is hidden this is one heading in a flex row, which is what it was.
+ */
+.section-head-inline {
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.section-head-inline .section-title {
+  margin-bottom: 0;
+  /* The heading shrinks and wraps; the action beside it keeps its words. */
+  min-width: 0;
+}
+
+/*
+ * The two ways of offering one action, and the single place the choice between
+ * them is made. `tab-header-wide-action` is the worded button in a page header —
+ * "+ Start a circle" — and `section-head-narrow-action` is its compact twin on
+ * the line of the heading the list belongs to — "Your circles  + New". Exactly
+ * one of them is ever on screen, so the action is never offered twice and never
+ * missing.
+ *
+ * The chip is the one that is off by default and the worded button the one that
+ * is turned off at a breakpoint, which is deliberate: a rule that fails to match
+ * then leaves the small control on screen rather than the wide one, and it is the
+ * wide one that goes half off the side of a narrow screen.
+ */
+.section-head-narrow-action {
+  display: none;
+  /* The heading gives way, never the action: two words on one line is the whole
+     point of the short version. */
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/*
+ * Where the swap happens. The width is 720px rather than the 640px the rest of
+ * the phone rules use, and the coarse-pointer clause widens it again, because
+ * "is this a phone in portrait?" is not answered by 640px alone: a foldable's
+ * inner screen is about 673px, a phone asked for the desktop site reports
+ * whatever it likes, and a tablet held upright is wider still. Every one of them
+ * was being handed a header holding a title, a subtitle and a full-width primary
+ * button, and the button was the thing that ended up off the edge — reachable
+ * only by rotating the phone, which is not a way to start a circle.
+ *
+ * Erring wide costs a large phone a chip instead of a worded button, which is
+ * the same action in a place it can actually be tapped. Erring narrow costs
+ * somebody the button entirely, so the two are not the same mistake.
+ */
+@media (max-width: 720px), (pointer: coarse) and (max-width: 1024px) {
+  .tab-header-wide-action {
+    display: none;
+  }
+
+  .section-head-narrow-action {
+    display: inline-flex;
+  }
+
+  .section-head-inline {
+    margin-bottom: 0.6rem;
+  }
+}
+
+/*
+ * Where a heading has more than one thing beside it — "Show recent only" and the
+ * Add action — they travel together as one block on the right. `flex: none` so a
+ * long heading shortens rather than squeezing them, and it wraps onto its own
+ * line rather than pushing anything off the side of a narrow screen.
+ */
+.section-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  max-width: 100%;
+}
+
+/* Nothing on the left, so the action goes to the right on its own line and keeps
+   the space a heading would have left under it. */
+.section-head-bare {
+  justify-content: flex-end;
+  margin-bottom: 0.6rem;
+}
+
+.category-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+  gap: 0.8rem;
+}
+
+.category-tile {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.category-tile:hover {
+  border-color: var(--terracotta);
+  transform: translateY(-1px);
+}
+
+.category-tile-icon {
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.category-tile-name {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Kept, because "12 entries" is the one thing a tile says about what is behind it —
+   but quieter than the name above it, which is what the tile is actually for. */
+.category-tile-count {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
+/*
+ * A category's own header: the mark, the name and the count, and nothing else.
+ * The add button used to sit on the right of it, which on a phone meant a header
+ * carrying a back link, a 2.4rem glyph, a title, a count and a full-width primary
+ * button — the button being the part that ended up off the side of the screen.
+ * It has moved down to the line of the listing it adds to, and the 1.8rem of air
+ * that was holding it apart from the page went with it: the subcategories are the
+ * first thing a reader wants here and they should be on screen without scrolling.
+ */
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.category-header .circle-header-text {
+  gap: 0.15rem;
+}
+
+/* One level of a category's tree, as a row of counted chips: the children of
+   wherever the reader is standing and nothing deeper, so a chip needs no path on
+   it — the trail above the row is what says where "Karnataka" sits. */
+.shelf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/*
+ * The one chip row in the app that wraps on a phone rather than scrolling
+ * sideways. Everywhere else a sideways row is right — the topic filter and My
+ * Library's shelves are a handful of fixed words, and scrolling keeps them on one
+ * line. A category's children are as many as the circle made and named whatever
+ * the circle calls them, and half of them off the right-hand edge of a 320px
+ * screen is a subcategory a reader never finds. So this row is allowed as many
+ * lines as it needs, and a long name wraps inside its own pill rather than
+ * widening the page.
+ *
+ * Two classes deep, and further down the file than the phone rule it overrides,
+ * because that rule is the general one and this is the exception to it.
+ */
+.shelf-chips.shelf-chips-wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  padding-bottom: 0;
+}
+
+.shelf-chips-wrap .chip-button {
+  white-space: normal;
+  max-width: 100%;
+  text-align: center;
+}
+
+/*
+ * The way on from a landing page's handful of recent entries to the whole listing.
+ * Deliberately quiet: the children above it are what the page is for, and this is
+ * an answer to "is that all?" rather than an invitation.
+ */
+.shelf-view-all {
+  margin: 0.9rem 0 0;
+  text-align: right;
+}
+
+.shelf-view-all .btn-text {
+  font-size: 0.82rem;
+}
+
+/* The "›" on a chip that has children, which is the difference between a chip
+   that goes somewhere and a chip that is where the walk ends. */
+.chip-into {
+  font-weight: 700;
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
+/* The trail on the left and the manager's own link on the right, both of them
+   text rather than a heading, so the row aligns on its middle. */
+.shelf-trail-head {
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+/*
+ * Where the reader is in the tree, and the way back up: `Events › Aradhane ›
+ * Songs`, every step but the last one a button. It wraps rather than scrolling,
+ * because a trail whose first steps have scrolled out of sight is the one thing
+ * it exists to prevent.
+ */
+.shelf-trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.shelf-trail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.shelf-trail-sep {
+  color: var(--ink-soft);
+  opacity: 0.7;
+  padding-inline: 0.25rem;
+}
+
+.shelf-trail-step {
+  border: 0;
+  background: none;
+  padding: 0.35rem 0.1rem;
+  font: inherit;
+  color: var(--primary-deep);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.shelf-trail-step:hover {
+  text-decoration: underline;
+}
+
+/* The last step is where you already are, so it is read rather than tapped. */
+.shelf-trail-here {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.1rem;
+  color: var(--ink);
+}
+
+.empty-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+/* The owner's panels: reordering, renaming, merging, switching off ----------- */
+
+.admin-panel {
+  padding: 1.2rem 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-soft);
+}
+
+.admin-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.admin-order {
+  display: flex;
+  gap: 0.2rem;
+}
+
+/*
+ * The one shape every admin list is drawn in: categories, subcategories and a
+ * category's own fields. A row is the thing's name, a line of status under it and
+ * a ⋯ holding everything that can be done to it — `Fiction`, `0 entries`, ⋯ —
+ * because seven chips per row wrapped into a wall on a phone and made a list of
+ * six subcategories taller than the screen.
+ *
+ * It is one rule set rather than three so the three screens cannot drift apart
+ * again; `ManageRow` in src/components/ManageRow.tsx is the markup side of the
+ * same idea.
+ */
+.manage-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.manage-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  /* Without this a long name pushes the ⋯ off the side of a 320px screen. */
+  min-width: 0;
+}
+
+/*
+ * A nested row carries a line down its inside edge as well as its indent, so the
+ * hierarchy still reads when the indent has hit its cap five levels down. The
+ * indent itself is applied inline by the component, because how deep a node sits
+ * is a fact about the node rather than a style.
+ */
+.manage-row-nested {
+  border-inline-start: 3px solid var(--line-strong);
+}
+
+/* A row being renamed, moved or merged gives its panel the whole width. */
+.manage-row-open {
+  align-items: flex-start;
+}
+
+.manage-lead {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* The twist is one glyph, so it is square rather than pill-shaped and does not
+   carry a chip's horizontal padding. */
+.manage-lead .chip-button {
+  min-height: 30px;
+  min-width: 30px;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.7rem;
+  border-radius: 10px;
+}
+
+/* A node with nothing under it keeps the twist's width, so every name in a branch
+   starts at the same place and the indent reads as the tree it is. */
+.manage-leaf {
+  display: inline-block;
+  width: 30px;
+  height: 1px;
+}
+
+.manage-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.manage-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: 0.94rem;
+}
+
+/* A pasted-in name with no spaces in it breaks rather than widening the screen. */
+.manage-name-text {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The lock beside a built-in field's name. Deliberately quiet: the soft ink, a
+ * hair smaller than the name it sits next to, and no chip around it — the row's
+ * own words end with "· Built-in", so the icon is a reminder of the status rather
+ * than the only place it is written, and a heavier badge would make every
+ * built-in row shout over the circle's own fields below them.
+ */
+.manage-lock {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: var(--ink-soft);
+}
+
+.manage-lock svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  display: block;
+}
+
+/* "0 entries", "Short text · Required", "3 in this branch". */
+.manage-meta {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+/* Renaming, moving and merging happen in the row itself, so nothing shifts under
+   the keeper while they type. */
+.manage-edit {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.manage-edit .field {
+  margin: 0;
+}
+
+/*
+ * The question asked before anything is thrown away. It is the same panel on all
+ * three screens, and it is set apart from the list rather than inside a row,
+ * because it is about to change something the list is showing.
+ */
+.manage-confirm {
+  margin: 1rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--terracotta);
+  border-radius: 16px;
+  background: rgba(37, 99, 235, 0.06);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.manage-confirm .field label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.admin-name {
+  flex: 1;
+  min-width: 8rem;
+  font-size: 0.9rem;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+/*
+ * The answer to "why can these two not see each other", opened under the member
+ * it is about. The row above is a flex line, so this claims the whole width and
+ * drops below rather than squeezing in beside the buttons.
+ */
+.admin-detail {
+  flex-basis: 100%;
+  margin-top: 0.5rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.admin-detail .quiet-list {
+  margin: 0.6rem 0;
+}
+
+/* Something that is wrong rather than merely worth reading. */
+.warn-note {
+  border-color: var(--terracotta);
+  background: rgba(37, 99, 235, 0.06);
+  color: var(--terracotta-deep);
+}
+
+.admin-detail .warn-note {
+  padding: 0.5rem 0.6rem;
+  border-radius: 12px;
+}
+
+/* Renaming or merging happens in place, so the row keeps its position. */
+.admin-edit {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 12rem;
+}
+
+.admin-edit .field {
+  margin: 0;
+}
+
+.admin-add {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.admin-add .field {
+  width: min(22rem, 100%);
+  margin: 0;
+}
+
+.admin-confirm {
+  margin: 1rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--terracotta);
+  border-radius: 16px;
+  background: rgba(37, 99, 235, 0.06);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.admin-confirm .field label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Adding something to a category a circle invented -------------------------- */
+
+/*
+ * A word opened under the feed row it was tapped on. A word has no page of its
+ * own — which one is open in Word Explorer is state rather than a route — so this
+ * is where a reader in a circle reads one, and it is set in from the row by a rule
+ * on the left so it plainly belongs to the line above it rather than being the
+ * next line down.
+ */
+.feed-reading {
+  margin: 0.5rem 0 0.2rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--line);
+}
+
+.post-body {
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/*
+ * The same post read in another language. The links sit under the details rather
+ * than beside the title, because they are a way of reading what is already there
+ * rather than another thing to open.
+ */
+.translations {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+
+.translations-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.translations-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+}
+
+/* A link rather than a button, because reading is not an action on the post. */
+.translation-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.translation-link:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.translation-link:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.translation-link-on {
+  color: var(--ink);
+  text-decoration-thickness: 2px;
+}
+
+/* The section that opens under the post when a language is asked for. */
+.translation-body {
+  margin-top: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Choosing those languages, on the form that writes the post. */
+.translation-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Choosing scripts: the searchable tick-list, on both the post form and the song form.
+ *
+ * Modelled on the picker Aksharamukha itself uses for this question, because fifty
+ * scripts is a list somebody searches rather than one they scroll: a box at the top, a
+ * bounded scrolling list under it, and what has been chosen summarised above both so
+ * the answer is visible from anywhere in the list. */
+.script-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.script-picker-chosen {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.script-picker-none {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+/* One chosen script, above the list. Tapping it unticks — the same toggle the row
+ * itself is, put where somebody who has scrolled can reach it. */
+.script-picker-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.16);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.script-picker-tag:hover {
+  background: rgba(37, 99, 235, 0.14);
+  color: var(--terracotta-deep);
+}
+
+.script-picker-search {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.script-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.2rem;
+  max-height: 13rem;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.script-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.script-picker-row:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.script-picker-native {
+  min-width: 4.5rem;
+  color: var(--ink-soft);
+}
+
+.script-picker-name {
+  font-weight: 600;
+}
+
+.script-picker-empty {
+  padding: 0.5rem 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* Typing in English letters ---------------------------------------------------
+ *
+ * The converter under a lyrics or details field. It is drawn as a panel inside the
+ * form rather than as a modal on top of it, for the same reason the "+ Add a field"
+ * panel is: the form behind it is already half filled in, and losing that to reach a
+ * helper would be worse than not having the helper. Dashed border, because it is
+ * scaffolding — something a member uses and then closes, not part of the share.
+ */
+
+.converter-open {
+  margin: -0.2rem 0 0;
+}
+
+.script-converter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.converter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.converter-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--terracotta-deep);
+}
+
+/* Two dropdowns side by side on a laptop, stacked on a phone, since both are short. */
+.converter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.converter-row .field {
+  flex: 1 1 10rem;
+  margin: 0;
+}
+
+.converter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.converter-actions .field-hint {
+  flex: 1 1 12rem;
+}
+
+/* What came back, in the letters it came back in, before it is added to anything. */
+.converter-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Photos on a share ---------------------------------------------------------- */
+
+.photo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* The pictures already picked, while the form is still open. */
+.photo-drafts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.photo-drafts li {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+}
+
+.photo-drafts img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.photo-drop {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ivory);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* The "+" button is the visible control; the input behind it is not. */
+.photo-input {
+  display: none;
+}
+
+.photo-add {
+  align-self: flex-start;
+}
+
+/* The pictures as everyone else sees them, in a feed row or on a card. */
+.photo-strip {
+  list-style: none;
+  margin: 0.1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.photo-open {
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  display: block;
+}
+
+.photo-open img {
+  display: block;
+  width: 7rem;
+  height: 7rem;
+  object-fit: cover;
+}
+
+.photo-strip.compact .photo-open img {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.photo-full {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.photo-paging {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+/* Picking a subcategory on a share form ------------------------------------- */
+
+.subcategory-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.subcategory-add {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+}
+
+.subcategory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* "Sweets is already here — did you mean that one?" */
+.subcategory-similar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.subcategory-similar p {
+  margin: 0;
+}
+
+/* Ticking what a new circle is for ------------------------------------------ */
+
+.category-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.category-row-on {
+  border-color: var(--terracotta);
+  background: var(--ivory-deep);
+}
+
+.category-add {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+}
+
+.category-add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (max-width: 720px) {
+  .category-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+  }
+
+  .admin-row {
+    align-items: flex-start;
+  }
+
+  /*
+   * A phone has no room for four columns, so the row stacks: the title on its own
+   * line, who and when together under it, and the actions under those. The column
+   * heads go with them — a heading for a column that no longer exists is noise.
+   */
+  .song-rows-head {
+    display: none;
+  }
+
+  .song-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.6rem;
+  }
+
+  .song-row-title {
+    grid-column: 1 / -1;
+  }
+
+  .song-row-date {
+    text-align: right;
+  }
+
+  .song-row-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    margin-top: 0.3rem;
+  }
+}
+
+/* Moderation: the ⋮ on a post, and the panels behind it --------------------- */
+
+/* The menu anchors to the button, so it opens over the card rather than moving it. */
+.post-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/*
+ * The ⋮ sits in the same line as the save and play icons, so it is the same size
+ * as they are — a row of controls that are nearly-but-not-quite matching reads as
+ * a mistake, and 2rem was under a comfortable target besides.
+ */
+.post-menu-button {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: 999px;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  line-height: 1;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.post-menu-button:hover {
+  border-color: var(--terracotta);
+  color: var(--terracotta-deep);
+}
+
+.post-menu-list {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 20;
+  min-width: 11rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--ivory);
+  box-shadow: var(--shadow);
+}
+
+.post-menu-list button {
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.post-menu-list button:hover {
+  background: var(--ivory-deep);
+}
+
+.post-menu-danger {
+  color: var(--danger);
+}
+
+/* Confirmation of something silent, so it says so where the tap happened. */
+.post-menu-note {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 19;
+  max-width: 15rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ivory);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  box-shadow: var(--shadow);
+}
+
+.post-menu-error {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.form-note {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 0.8rem;
+}
+
+/*
+ * The one line the app says back after something it did on another page — you
+ * left a circle, and here is where you are now. It sits at the top of the content
+ * rather than floating over it, because it is an acknowledgement to be read once
+ * and not a control to be dismissed out of the way of something.
+ */
+.flash-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--success);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+}
+
+.report-reasons {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 0.9rem;
+}
+
+.report-reasons legend {
+  padding: 0 0.3rem;
+}
+
+.radio-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+/* A moderator's queue: what was flagged, and the two answers to it. */
+.report-list {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.report-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.report-body {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.report-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+}
+
+.report-details {
+  margin: 0 0 0.3rem;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+
+/* Something waiting on somebody, or a standing worth noticing. */
+.tag-warn {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(220, 38, 38, 0.12);
+}
+
+.standing-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0;
+}
+
+.subsection-title {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+  margin: 1.1rem 0 0.5rem;
+}
+
+/* Hidden posts and blocked members: quiet by design, undone from one place. */
+.quiet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.quiet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 720px) {
+  /* On a phone the menu would otherwise hang off the edge of the card. */
+  .post-menu-list,
+  .post-menu-note {
+    right: auto;
+    left: 0;
+  }
+
+  .report-row,
+  .quiet-row {
+    align-items: flex-start;
+  }
+}
+
+/* The three lines every member agrees to before their first share. */
+.guidelines-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.guidelines-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.guidelines-tick {
+  color: var(--success);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.guidelines-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.guidelines-agree input {
+  margin-top: 0.15rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+}
+
+/*
+ * A custom category's own questions. They sit inside the share form between the
+ * details and everything the app itself asks for, so they read as part of the
+ * form rather than as a panel bolted under it.
+ */
+.category-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.field-checkbox {
+  flex-direction: row;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  cursor: pointer;
+}
+
+.field-checkbox input {
+  margin-top: 0.1rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+}
+
+.field-checkbox .field-hint {
+  flex-basis: 100%;
+}
+
+.field-required {
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* A question answered with a document rather than with words. */
+.file-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.file-field .field-hint {
+  margin: 0;
+}
+
+.file-chosen {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  max-width: 100%;
+}
+
+.file-chosen a {
+  overflow-wrap: anywhere;
+}
+
+.file-drop {
+  min-width: 32px;
+  min-height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.file-drop:hover {
+  opacity: 1;
+}
+
+/*
+ * The documents on a share, as everybody else reads them. A link rather than a
+ * line of text, because the whole of what a reader wants from "PDF version of
+ * the book" is to open it — so the row says what kind of thing it is, what it is
+ * called, how big it is, and then "Open PDF" as the thing to tap. It is one row
+ * per file, stacked, since a field may take several.
+ */
+.field-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.field-file-link {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.field-file-link:hover {
+  border-color: var(--primary);
+}
+
+/* The same row as a button where it opens the in-app PDF viewer. */
+button.field-file-link {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/*
+ * The in-app document viewer: the whole screen, above every dialog, with the
+ * Back control in the corner a thumb reaches and clear of the notch and home
+ * bar. The PDF scrolls and pinch-zooms inside its frame the way the device
+ * normally handles one; the viewport never disables zoom.
+ */
+.doc-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.doc-viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  padding-left: calc(0.75rem + env(safe-area-inset-left, 0px));
+  padding-right: calc(0.75rem + env(safe-area-inset-right, 0px));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.doc-viewer-back {
+  flex: none;
+}
+
+.doc-viewer-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.doc-viewer-meta {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* Opening the file outside the app is a secondary way out, so it is a small
+   glyph in the corner rather than a button beside Back. */
+.doc-viewer-open {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
+/* The pages, drawn by the app. Scrolls both ways once zoomed in; the browser's
+   own pinch is switched off here because the viewer does its own, which keeps
+   the Back bar the size it is. */
+.doc-viewer-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
+  background: var(--surface-soft);
+}
+
+.doc-viewer-pages {
+  margin: 0 auto;
+  padding: 12px;
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: min-content;
+}
+
+.doc-viewer-page {
+  flex: none;
+  background: var(--surface);
+  box-shadow: 0 1px 4px var(--line);
+}
+
+.doc-viewer-page canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.doc-viewer-loading {
+  margin: 3rem 0;
+  text-align: center;
+}
+
+.doc-viewer-zoom {
+  position: absolute;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 2px 10px var(--line);
+  overflow: hidden;
+}
+
+.doc-viewer-zoom button {
+  min-width: 48px;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-viewer-zoom button:disabled {
+  color: var(--ink-soft);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.doc-viewer-fallback {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.doc-viewer-fallback .btn {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.doc-viewer-fallback-kind {
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+.doc-viewer-fallback-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* "PDF", "Word", "Excel" — what is about to open, before its name. */
+.field-file-kind {
+  flex: none;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.field-file-name {
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+/* The words that make it obvious this is a thing to tap. */
+.field-file-open {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/*
+ * An audio answer, read: the player first, because the answer to "sing it" is
+ * the singing, and the file's own row under it for anybody who would rather
+ * download it than listen here.
+ */
+.field-file-audio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+/*
+ * A link answer, and any address found inside a typed one. Addresses are long
+ * and have no spaces in them, so they break anywhere rather than widening a
+ * phone.
+ */
+.field-link,
+.post-field dd a {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * A bookmark's card is its address, so the link is the body of it rather than a
+ * button below one. Muted and small, because the name above it is what a reader
+ * scans and the address is only there to say where they are being sent.
+ */
+.card-link {
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.field-add {
+  align-self: flex-start;
+}
+
+/*
+ * Managing the questions rather than answering them — the "Manage fields" view,
+ * which is the same view wherever its door is: a category page, the Books or
+ * Songs tab header, or the share form a keeper happened to have open.
+ *
+ * A row is deliberately three short things: the label, what kind of answer it
+ * takes and whether it is required, and a ⋯ for everything that can be done to
+ * it. A row of six small buttons per field is a puzzle on a phone and a wall on a
+ * desktop, so the actions are a sheet and the list stays readable at 320px.
+ */
+.field-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* The list itself is the shared `.manage-list` — see the block above, which is
+   where a field, a category and a subcategory all get the same row. */
+.field-admin .manage-list {
+  margin: 0;
+}
+
+.field-admin-add {
+  align-self: flex-start;
+}
+
+/*
+ * The three questions an upload field asks about itself, kept together so they
+ * read as settings for the field above them rather than as three more fields.
+ */
+.field-upload-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 0.8rem 0.9rem;
+  background: var(--surface-soft);
+}
+
+/* Which documents it takes: a row of ticks that wraps rather than a dropdown,
+   since the answer is usually more than one of them. */
+.field-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+/* The answers, wherever the post is read. */
+.post-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.post-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.post-field dt {
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.post-field dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* One "+ Add a Song" form ---------------------------------------------------- */
+
+/*
+ * The line under a song listing that says what the single button offers. Two
+ * buttons used to say it by existing; one has to say it in words.
+ */
+.tab-note {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+/* Record it / upload it / just the words — asked once, near the top of the form. */
+.song-way {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.song-way legend {
+  padding: 0 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.song-way label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.song-way .field-hint {
+  display: inline;
+  margin: 0;
+}
+
+/*
+ * What is on the song already, shown at the top of the same question when the form
+ * is editing one: the take itself, so it can be heard before it is replaced, and the
+ * link to the audio, which is the only address a recording has.
+ */
+.song-current {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.35rem;
+  background: var(--ivory-deep);
+  border-radius: 12px;
+}
+
+.song-current .field-hint {
+  display: block;
+  margin: 0;
+}
+
+/*
+ * A song can reach several circles, and each of them may have decided its Songs
+ * category should ask something of its own — so the questions are grouped by the
+ * circle asking them.
+ */
+/*
+ * One circle's own questions about a built-in kind, on the share form. A song or a
+ * book may go to several circles at once and each keeps its own copy of the
+ * category, so there is one of these per circle asking and a dashed rule between
+ * them. The `song-` name is kept as an alias because it shipped that way.
+ */
+.circle-asks,
+.song-circle-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.circle-asks + .circle-asks,
+.song-circle-fields + .song-circle-fields {
+  padding-top: 0.7rem;
+  border-top: 1px dashed var(--line);
+}
+
+.song-discussion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Why the app exists -------------------------------------------------------- */
+
+/*
+ * The About page: the main message set large, the idea in five steps, three
+ * short sections and a sentence set apart, read at a
+ * comfortable measure rather than the full width of the content column. It
+ * borrows `.hero-title` for its heading, so the page opens in the same voice
+ * every other first screen does, and adds only the pieces it actually needs.
+ */
+.about {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* The flex gap above already spaces it, so its own margin would double up. */
+.about .back-link {
+  align-self: flex-start;
+  margin-bottom: 0;
+}
+
+.about .hero-title {
+  margin: 0;
+}
+
+/*
+ * Slightly larger than body copy and generously led, because these three
+ * paragraphs are the only thing on the page anybody has to actually read.
+ */
+.about-lede {
+  margin: 0;
+  font-size: 1.04rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+/* The one line of the three that is a statement rather than a story. */
+.about-lede-strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.about-points {
+  list-style: none;
+  margin: 0.6rem 0 0.4rem;
+  padding: 0;
+  display: grid;
+  /* `min()` so the column can never be wider than the screen it is on. */
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.9rem;
+}
+
+.about-point {
+  padding: 1.05rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.about-point-mark {
+  display: block;
+  font-size: 1.4rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.about-point-title {
+  margin: 0 0 0.35rem;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.about-point-copy {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/*
+ * The sentence the page is here to deliver, set as a quote: a tinted panel with
+ * a rule down its leading edge, which is the one bit of emphasis on the page.
+ */
+.about-quote {
+  margin: 0.6rem 0;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--surface-tint);
+}
+
+/* The closing highlight holds two sentences, so it needs room between them. */
+.about-closing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+
+.about-quote p {
+  margin: 0;
+  font-size: 1.06rem;
+  line-height: 1.55;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * The opening: the heading and the highlighted sentence under it, the part of
+ * the page somebody should take away if they read nothing else.
+ */
+.about-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding-bottom: 0.3rem;
+}
+
+/*
+ * Share → Preserve → Organize → Rediscover → Connect, as a row of small steps
+ * that wraps on a narrow screen rather than scrolling. The arrow is drawn
+ * between steps by CSS so a screen reader reads five steps, not four arrows.
+ */
+.about-flow {
+  list-style: none;
+  margin: 0.3rem 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+}
+
+.about-flow-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.about-flow-step + .about-flow-step::before {
+  content: "→";
+  position: absolute;
+  left: -1.05rem;
+  top: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.about-flow-word {
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+.about-flow-line {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  max-width: 11rem;
+}
+
+.about-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.about-section-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* The About link under the footer's own line. */
+.site-footer-links {
+  margin: 0.45rem 0 0;
+}
+
+@media (max-width: 640px) {
+  .about-quote p {
+    font-size: 0.98rem;
+  }
+
+  .about-lede {
+    font-size: 0.98rem;
+  }
+
+  /* One step per line on a phone, so each word keeps its line beside it. */
+  .about-flow {
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .about-flow-step {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding-left: 1.3rem;
+  }
+
+  .about-flow-step::before,
+  .about-flow-step + .about-flow-step::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .about-flow-word {
+    min-width: 6.2rem;
+  }
+
+  .about-flow-line {
+    max-width: none;
+  }
+}
+
+/* Touch and motion --------------------------------------------------------- */
+
+/*
+ * A lift on hover is a mouse idiom. A touchscreen has no hover to leave, so the
+ * browser fakes one on tap and the tile a member just opened stays raised until
+ * something else is tapped — which reads as a stuck card rather than as feedback.
+ * On a device with no real pointer the transforms simply do not happen.
+ */
+@media (hover: none) {
+  .shortcut:hover,
+  .word-row:hover,
+  .category-tile:hover {
+    transform: none;
+  }
+
+  /*
+   * The colour of that faked hover has to go with the lift, and on a category
+   * tile it is the one that matters: a blue border is what a *selected* tile
+   * would look like, so a member who opened Books and came back read the tile as
+   * still selected — and nothing on this page is ever selected, a tile opening
+   * the category rather than filtering the page behind it. The border goes back
+   * to the line colour and the press below is the whole of the feedback.
+   */
+  .category-tile:hover {
+    border-color: var(--line);
+  }
+}
+
+/* The press: a small give, so a tap on a tile is acknowledged before the
+   category draws. The same acknowledgement a circle card gives on the listing,
+   and it ends with the finger rather than lingering. */
+.category-tile:active {
+  transform: scale(0.995);
+  border-color: var(--primary);
+}
+
+/* Somebody who has asked their device for less movement gets none of ours. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .icon-button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Branches — the crumbs under an organisation.
+
+   A parent circle with chapters (SVKV, with Austin, Houston and Phoenix set
+   as branches of it) shows them as a row of places rather than as circle
+   cards: the reader is scanning for their own city, so the name and the head
+   count are the whole of it and everything else about the circle waits until
+   they are inside. It scrolls sideways rather than wrapping, so a dozen
+   branches never build a wall on a phone.
+--------------------------------------------------------------------------- */
+.branch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.15rem 0 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.branch-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.branch-crumb:hover:not(:disabled) {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* A branch you are already in reads as somewhere to go back to rather than a door. */
+.branch-crumb.is-mine {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.branch-crumb:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.branch-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.branch-name {
+  font-weight: 600;
+}
+
+.branch-count {
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* What tapping does, when it is not simply "open it". */
+.branch-door {
+  margin-left: 0.2rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-tint);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/*
+ * The Circles listing: a compact list of rows rather than a grid of cards.
+ *
+ * The cards were the wrong shape once circles gained branches. An organisation
+ * with three chapters drew them inside its own card, so SVKV's card was three
+ * times the height of the one beside it and the grid went ragged; a phone got
+ * one column of cards a screen and a half tall each, most of it description.
+ * A row says the same things in one line — icon, name, then the facts under it —
+ * and a member scanning for a circle reads a list instead of scrolling a deck.
+ *
+ * The whole row is the tap target, which is why there is no Open button on it: a
+ * door with a handle inside it asks a thumb to hit a target inside a target. The
+ * row is not a button, because it holds the circle's name and that is a heading;
+ * the name is the real control and this is the surface around it, which is why
+ * the focus ring is drawn on the row when the name has focus.
+ */
+.circle-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.circle-row {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.circle-row:hover {
+  border-color: var(--primary);
+}
+
+.circle-row:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/*
+ * A branch under its organisation. What says it belongs there is indentation, a
+ * tint and the spacing around it — never a connector line. `├──` and `└──` say
+ * the same thing in the vocabulary of a file explorer, on the one screen with
+ * the least room to spend on characters that carry no information; a community
+ * app indents and moves on. The left edge is a single soft rule rather than a
+ * drawn tree: one line for the whole group instead of one glyph per row.
+ */
+.circle-row-nested {
+  border-color: transparent;
+  background: var(--surface-tint);
+}
+
+.circle-row-nested:hover {
+  border-color: var(--primary);
+}
+
+/* The row itself: icon, the name and its facts, and the one control on the end. */
+.circle-row-line {
+  display: flex;
+  /* Centred rather than top-aligned: a two-line name would otherwise leave the
+     ⋯ hanging off the top of it, reading as a stray. */
+  align-items: center;
+  gap: 0.65rem;
+  /* The same 44px a thumb needs everywhere else in the app. */
+  min-height: 44px;
+  padding: 0.6rem 0.75rem;
+}
+
+.circle-row-icon {
+  flex: none;
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+/* Takes the slack, so the control sits at the right edge whatever the name's
+   length, and gives it back rather than pushing anything off a 320px screen. */
+.circle-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.circle-row-name {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  /* One line, clipped: the name is the thing being scanned, and a circle called
+     after a whole organisation should not wrap a row into two. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The facts under the name — the head count, the door, and where a searched row
+   sits — which are secondary and read as such. The description is deliberately
+   not among them: this is a list of doors, and the full text is one tap away on
+   the circle's own page. A desktop can read it as the name's tooltip, which is a
+   bonus rather than the way to it, since a phone has no hover to offer. */
+.circle-row-meta {
+  margin: 0.05rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.circle-row-more {
+  flex: none;
+}
+
+.circle-row-join {
+  flex: none;
+}
+
+.circle-row-tag {
+  flex: none;
+}
+
+/*
+ * The branch line, folded up: how many there are and the first few of them, on
+ * one quiet line under the organisation's own. It is secondary to the parent by
+ * every means available — smaller, softer, and inside the parent's row rather
+ * than beside it — because SVKV is the circle being listed and its chapters are
+ * a fact about it until somebody asks for them.
+ *
+ * It is a button that stops the tap reaching the row, the same trade the ⋯
+ * makes, so tapping the line opens the branches and tapping anywhere else opens
+ * the circle.
+ */
+.branch-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  /* Indented to the name above it, so the line reads as belonging to it. */
+  padding: 0.45rem 0.75rem 0.6rem 2.85rem;
+  border: none;
+  background: none;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 0.76rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.branch-summary:hover .branch-summary-count {
+  color: var(--primary-deep);
+}
+
+.branch-summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  border-radius: var(--radius);
+}
+
+.branch-summary-count {
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* The names themselves, clipped: three places is the usual case and a long one
+   shortens rather than wrapping the line. */
+.branch-summary-names {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch-summary-chevron {
+  flex: none;
+  line-height: 1;
+}
+
+/* The branches open, indented under their organisation with one soft rule down
+   the left of the group — which is the whole of the tree drawing. */
+.branch-group {
+  margin: 0 0.75rem 0.7rem 2.85rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--line);
+}
+
+.branch-group-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* A nested list is tighter than the one it sits in. */
+.circle-rows-nested {
+  gap: 0.3rem;
+}
+
+.branch-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+/* "View all 8 branches ›" and "Show less" — words rather than icons, because
+   both are statements about a list rather than actions on a circle. */
+.branch-link {
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary-deep);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.branch-link:hover {
+  text-decoration: underline;
+}
+
+.branch-link-quiet {
+  color: var(--text-soft);
+}
+
+/* The narrowest phones: the icon and the indentation both give up a little, the
+   name and its facts being what the row is for. */
+@media (max-width: 380px) {
+  .circle-row-line {
+    gap: 0.5rem;
+    padding: 0.6rem 0.6rem;
+  }
+
+  .circle-row-icon {
+    font-size: 1.25rem;
+  }
+
+  .branch-summary {
+    padding-left: 2.1rem;
+  }
+
+  .branch-group {
+    margin-left: 2.1rem;
+    margin-right: 0.5rem;
+  }
+}
+
+/* A tap leaves the hover state stuck on a phone, so it is switched off there. */
+@media (hover: none) {
+  .branch-crumb:hover:not(:disabled) {
+    transform: none;
+    border-color: var(--line);
+  }
+
+  /* Same reason: a tapped circle row kept its highlight after the page moved,
+     which read as though the row were still selected. */
+  .circle-row:hover {
+    border-color: var(--line);
+  }
+
+  .circle-row-nested:hover {
+    border-color: transparent;
+  }
+
+  .branch-link:hover {
+    text-decoration: none;
+  }
+}
+
+/*
+ * The keys of the blobs nothing points at, ticked one at a time.
+ *
+ * A key is a member id and a uuid joined together, which is longer than a phone
+ * is wide, so a row wraps inside the key rather than widening the page. It is
+ * small and quiet on purpose: nobody reads one of these for meaning, and what
+ * the admin is actually doing is counting them and ticking the ones to go. The
+ * list scrolls at its own height so a store with two hundred strays in it does
+ * not bury the button underneath.
+ */
+.orphan-keys {
+  list-style: none;
+  margin: 0.6rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.orphan-key {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.orphan-key:hover {
+  background: var(--surface-soft);
+}
+
+.orphan-key input {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}

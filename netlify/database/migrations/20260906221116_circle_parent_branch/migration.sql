@@ -1,0 +1,1 @@
+ALTER TABLE "circles" ADD COLUMN "parent_circle_id" integer;

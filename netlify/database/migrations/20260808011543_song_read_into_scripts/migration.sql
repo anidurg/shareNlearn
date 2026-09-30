@@ -1,0 +1,1 @@
+ALTER TABLE "songs" ADD COLUMN "read_into" text;
