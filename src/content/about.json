@@ -1,7 +1,6 @@
 {
   "headline": "Share what matters. Keep what matters.",
-  "headlineEmphasis": "Keep",
-  "headlineEmphasis": "Share",
+  "headlineEmphasis": ["Share", "Keep"],
 
   "keyMessage": "It isn't meant to replace the places where we talk to each other. It's meant to preserve the things we don't want to lose.",
 
