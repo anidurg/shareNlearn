@@ -8,12 +8,17 @@
     "Share what you Learn!",
     "Keep what you Share!"
   ],
-  "problem": "We share songs, recipes, books, useful links, ideas, experiences and more every day. But in chats and messages, valuable things quickly get buried.",
+  "problem": [
+    "Have you ever remembered a song, video, picture, recipe or useful link you saw a few months ago — but couldn’t remember where you saw it or where you saved it?",
+    "Then begins the frantic search through messages, social media, email, bookmarks and files. Sound familiar?"
+  ],
   "flow": [],
   "why": {
     "heading": "Why Share & Learn?",
     "paragraphs": [
-      "Keep talking and sharing wherever you already do. When something is worth keeping, bring it to Share & Learn — a place to preserve, organize and rediscover it with your community, so everyone can find it, learn from it and share it again."
+      "Keep talking and sharing wherever you normally do.",
+      "When something is worth keeping, simply forward it to Share & Learn — an easy way to bring it along without interrupting what you’re doing.",
+      "Preserve it, organize it and find it again for yourself, or share it with a community when you choose."
     ]
   },
   "howItWorks": {
