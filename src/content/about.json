@@ -1,25 +1,22 @@
 {
   "headline": "Share & Learn",
-  "headlineEmphasis": ["Share", "Learn"],
-
+  "headlineEmphasis": [
+    "Share",
+    "Learn"
+  ],
   "keyMessage": [
     "Share what you Learn!",
     "Keep what you Share!"
   ],
-
   "problem": "We share songs, recipes, books, useful links, ideas, experiences and more every day. But in chats and messages, valuable things quickly get buried.",
-
   "purpose": "Share & Learn gives them a place where you can save, organize, share and rediscover them with the people who matter.",
-
   "flow": [],
-
   "why": {
     "heading": "Why Share & Learn?",
     "paragraphs": [
       "Keep talking and sharing wherever you already do. When something is worth keeping, bring it to Share & Learn — so the whole community can find it, learn from it and share it again."
     ]
   },
-
   "howItWorks": {
     "heading": "How does it work?",
     "points": [
@@ -41,7 +38,6 @@
       }
     ]
   },
-
   "communities": {
     "heading": "Built around your community",
     "paragraphs": [
@@ -49,9 +45,102 @@
       "You and your community decide what matters."
     ]
   },
-
   "closing": [
     "Share what you Learn!",
     "Keep what you Share!"
-  ]
+  ],
+  "faq": {
+    "heading": "FAQ",
+    "items": [
+      {
+        "question": "What is Share & Learn?",
+        "answer": [
+          "Share & Learn is a community space for keeping and sharing things that are useful, meaningful or worth coming back to — such as songs, recipes, books, useful links, ideas, experiences and more.",
+          "Instead of valuable things getting lost over time, they stay connected to the community that shared them."
+        ]
+      },
+      {
+        "question": "Why Share & Learn when we already have other ways to share?",
+        "answer": [
+          "Social media and messaging are great for sharing in the moment, but conversations move on and useful things get buried. Share & Learn helps your community keep what is worth finding again.",
+          "Content can stay where it already belongs — on a website, in Google Drive, OneDrive or elsewhere. Share the link as a Bookmark and keep the community knowledge around it in Share & Learn."
+        ],
+        "points": [
+          {
+            "title": "Social media & messaging",
+            "copy": "Great for conversations and sharing in the moment. Share & Learn preserves what is worth finding again after the conversation moves on."
+          },
+          {
+            "title": "Google Drive, OneDrive & cloud storage",
+            "copy": "Great for storing files. Share & Learn adds community context, discussion and quick Bookmarks, so members can find what matters without navigating an entire folder hierarchy."
+          },
+          {
+            "title": "Email",
+            "copy": "Great for direct communication. Share & Learn keeps useful knowledge from getting scattered across inboxes and long email threads."
+          },
+          {
+            "title": "Websites",
+            "copy": "Great for publishing information. Share & Learn brings useful links from many websites together and organizes them around the interests of your community."
+          },
+          {
+            "title": "Browser bookmarks",
+            "copy": "Great for saving something for yourself. A browser bookmark says, “I want to remember this.” A Share & Learn Bookmark says, “Our community may find this useful — and here’s why.”"
+          }
+        ],
+        "closing": "Share & Learn doesn’t replace these tools. It gives your community one place to preserve, organize and build knowledge around what is already shared across them."
+      },
+      {
+        "question": "What is a Circle?",
+        "answer": [
+          "A Circle is a shared space for a family, group of friends, organization or community.",
+          "Every Circle can be different. A family might share recipes and memories, a music group might share songs, while a learning community might share books, articles and ideas.",
+          "Each Circle decides what it wants to share and how it wants to organize it."
+        ]
+      },
+      {
+        "question": "What can I share?",
+        "answer": [
+          "That depends on the Circle. A Circle can support different kinds of content, such as Songs, Recipes, Books, Bookmarks, Word Explorer, Fun Facts, Travel experiences, Home Remedies and other content useful to its community.",
+          "A Circle doesn’t need to use everything available. Its administrators can choose the content types that make sense for that community."
+        ]
+      },
+      {
+        "question": "What are folders and subfolders for?",
+        "answer": [
+          "Folders help a Circle organize what it shares. They are optional — if a Circle doesn’t need them, members can share items directly in the Circle."
+        ]
+      },
+      {
+        "question": "Why do different kinds of shared items have different information?",
+        "answer": [
+          "Because the information that matters for a recipe isn’t necessarily what matters for a song, book or travel experience. Share & Learn lets each kind of content capture the information that is useful for it."
+        ]
+      },
+      {
+        "question": "Can members discuss what has been shared?",
+        "answer": [
+          "Yes. Members can keep discussions, experiences, tips and other useful context connected to what was shared, instead of having that knowledge disappear into a separate conversation. Over time, an item can become more useful because of what the community contributes around it."
+        ]
+      },
+      {
+        "question": "What is My Library?",
+        "answer": [
+          "My Library is your personal place for keeping track of things in Share & Learn that you want to return to. The original item remains with its Circle.",
+          "My Library helps you remember; a shared Bookmark can help your community discover."
+        ]
+      },
+      {
+        "question": "Can I belong to more than one Circle?",
+        "answer": [
+          "Yes. You can belong to different Circles for different families, friends, interests, organizations or communities."
+        ]
+      },
+      {
+        "question": "Who can see what I share?",
+        "answer": [
+          "It depends on the Circle and its access settings. Content shared within a private Circle is intended for members of that Circle."
+        ]
+      }
+    ]
+  }
 }
