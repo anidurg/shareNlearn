@@ -141,5 +141,27 @@
         ]
       }
     ]
+  },
+  "tutorials": {
+    "heading": "Tutorials",
+    "intro": [
+      "A Circle is who you share with.",
+      "A folder is where it belongs.",
+      "A content type is what it is."
+    ],
+    "items": [
+      {
+        "title": "Create a Circle",
+        "intro": "A Circle is a shared space for your family, friends, group or community.",
+        "steps": [
+          "Go to Circles and choose + Start a circle. On mobile, choose + New.",
+          "Enter a Circle name and a short Description.",
+          "Choose an icon and, if you like, add a cover image.",
+          "Under What this circle is for, choose the kinds of things your community wants to share. You can change these later.",
+          "Choose who can join your Circle: Private, Ask to Join, or Open to All.",
+          "Finish creating your Circle. You can then invite people, organize it with folders, and start sharing."
+        ]
+      }
+    ]
   }
 }
