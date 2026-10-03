@@ -90,7 +90,9 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
         <h1 className="hero-title">{headline(about.headline, about.headlineEmphasis)}</h1>
 
         <blockquote className="about-quote">
-          <p>{about.keyMessage}</p>
+          {about.keyMessage.map((text) => (
+            <p key={text}>{text}</p>
+          ))}
         </blockquote>
       </header>
 
