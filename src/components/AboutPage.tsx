@@ -96,7 +96,13 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
         </blockquote>
       </header>
 
-      <p className="about-lede">{about.problem}</p>
+      <div className="about-problem">
+        {about.problem.map((text, index) => (
+          <p key={text} className={index === 0 ? "about-lede about-problem-lead" : "about-lede"}>
+            {text}
+          </p>
+        ))}
+      </div>
 
       <ol className="about-flow" aria-label="The idea behind Share & Learn">
         {about.flow.map((step) => (
