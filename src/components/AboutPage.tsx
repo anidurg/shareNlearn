@@ -134,6 +134,34 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
         <Paragraphs items={about.communities.paragraphs} />
       </section>
 
+      <section className="about-section">
+        <h2 className="about-section-title">{about.faq.heading}</h2>
+        <div className="about-faq">
+          {about.faq.items.map((item) => (
+            <details key={item.question} className="about-faq-item">
+              <summary>{item.question}</summary>
+              <div className="about-faq-answer">
+                {item.answer.map((text) => (
+                  <p key={text}>{text}</p>
+                ))}
+                {"points" in item && item.points && (
+                  <ul>
+                    {item.points.map((point) => (
+                      <li key={point.title}>
+                        <strong>{point.title}</strong> — {point.copy}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {"closing" in item && item.closing && (
+                  <p><strong>{item.closing}</strong></p>
+                )}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* The closing highlight: what the app is, and what it is not. */}
       <blockquote className="about-quote about-closing">
         {about.closing.map((text) => (
