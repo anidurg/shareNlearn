@@ -1,8 +1,8 @@
 {
-  "headline": "Share what you Learn! Keep what you Share!",
-  "headlineEmphasis": "Share",
+  "headline": "Share & Learn",
+  "headlineEmphasis": ["Share", "Learn"]
 
-  "keyMessage": "Share & Learn gives the things worth keeping a place to stay in your community.",
+  "keyMessage": "Share & Learn enhances community sharing with a place to keep what community shares",
 
   "problem": "We share songs, recipes, books, useful links, ideas, experiences and more every day. But in chats and messages, valuable things quickly get buried.",
 
@@ -48,6 +48,6 @@
   },
 
   "closing": [
-    "Share & Learn helps you keep it."
+    "Share what you Learn! Keep what you Share!"
   ]
 }
