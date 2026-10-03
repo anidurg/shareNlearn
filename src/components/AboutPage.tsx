@@ -160,6 +160,30 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
         </div>
       </section>
 
+      <section className="about-section">
+        <h2 className="about-section-title">{about.tutorials.heading}</h2>
+        <div className="about-tutorial-intro">
+          {about.tutorials.intro.map((text) => (
+            <p key={text}><strong>{text}</strong></p>
+          ))}
+        </div>
+        <div className="about-faq">
+          {about.tutorials.items.map((tutorial) => (
+            <details key={tutorial.title} className="about-faq-item">
+              <summary>{tutorial.title}</summary>
+              <div className="about-faq-answer">
+                <p>{tutorial.intro}</p>
+                <ol>
+                  {tutorial.steps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* The closing highlight: what the app is, and what it is not. */}
       <blockquote className="about-quote about-closing">
         {about.closing.map((text) => (
