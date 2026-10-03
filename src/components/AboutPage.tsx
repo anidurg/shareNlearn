@@ -98,8 +98,6 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
 
       <p className="about-lede">{about.problem}</p>
 
-      <p className="about-lede about-lede-strong">{about.purpose}</p>
-
       <ol className="about-flow" aria-label="The idea behind Share & Learn">
         {about.flow.map((step) => (
           <li key={step.word} className="about-flow-step">
