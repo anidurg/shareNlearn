@@ -1,65 +1,53 @@
 {
-  "headline": "Share what matters. Keep what matters.",
-  "headlineEmphasis": ["Share", "Keep"],
+  "headline": "Share what you Learn! Keep what you Share!",
+  "headlineEmphasis": "Share",
 
-  "keyMessage": "Share & Learn isn't meant to replace the places where we already talk and share. It's a place for the things we don't want to lose.",
+  "keyMessage": "Share & Learn gives the things worth keeping a place to stay in your community.",
 
-  "problem": "Conversations move on. Useful links get buried. Recipes, songs, documents, ideas and experiences become difficult to find again.",
+  "problem": "We share songs, recipes, books, useful links, ideas, experiences and more every day. But in chats and messages, valuable things quickly get buried.",
 
-  "purpose": "Share & Learn gives those things a home where they can be preserved, organized, shared and rediscovered.",
+  "purpose": "Share & Learn gives them a place where you can save, organize, share and rediscover them with the people who matter.",
 
-  "flow": [
-    { "word": "Share", "line": "with the people who matter" },
-    { "word": "Preserve", "line": "what you don't want to lose" },
-    { "word": "Organize", "line": "in a way that makes sense" },
-    { "word": "Rediscover", "line": "when you need it again" },
-    { "word": "Connect", "line": "through shared knowledge" }
-  ],
+  "flow": [],
 
   "why": {
-    "heading": "Why Share & Learn",
+    "heading": "Why Share & Learn?",
     "paragraphs": [
-      "We share useful and meaningful things every day—songs, recipes, books, remedies, links, ideas and experiences. But over time, they get buried in messages and become difficult to find.",
-      "Share & Learn gives those things a place to stay, while keeping them connected to the people and conversations that give them meaning."
+      "Keep talking and sharing wherever you already do. When something is worth keeping, bring it to Share & Learn — where it stays easy to find, share and learn from."
     ]
   },
 
   "howItWorks": {
-    "heading": "How it works",
+    "heading": "How does it work?",
     "points": [
       {
         "title": "Share within Circles",
-        "copy": "Share with family, friends or communities you belong to."
+        "copy": "Create spaces for family, friends and communities."
       },
       {
-        "title": "Organize naturally",
-        "copy": "Use folders and subfolders when you need them."
-      },
-      {
-        "title": "Keep the details",
-        "copy": "Songs, recipes, books and other kinds of content can keep the information that matters to them."
+        "title": "Organize your way",
+        "copy": "Use folders when you need them."
       },
       {
         "title": "Learn from each other",
-        "copy": "Discussions, experiences and tips stay connected to what was shared."
+        "copy": "Keep discussions, experiences and tips with what was shared."
       },
       {
         "title": "Find it again",
-        "copy": "Browse, search or save things to your library for later."
+        "copy": "Search, browse or save something to your library for later."
       }
     ]
   },
 
   "communities": {
-    "heading": "Built around communities",
+    "heading": "Built around your community",
     "paragraphs": [
-      "Every Circle is different. A family may share recipes and memories, a music group may share songs, and a learning community may share books, articles and ideas.",
-      "Each Circle can choose what it wants to share and organize that knowledge in the way that works for its community."
+      "Every community is different. A family might share recipes and memories. A music group might share songs. A learning group might share books, articles and ideas.",
+      "You and your community decide what matters."
     ]
   },
 
   "closing": [
-    "Keep talking and sharing wherever you already do.",
-    "When something is worth keeping, give it a place in Share & Learn."
+    "Share & Learn helps you keep it."
   ]
 }
