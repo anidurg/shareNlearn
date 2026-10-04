@@ -8,13 +8,14 @@
     "Share what you Learn!",
     "Keep what you Share!"
   ],
-  "problem": [
-    "Have you ever remembered a song, video, picture, recipe or useful link you saw a few months ago — but couldn’t remember where you saw it or where you saved it?",
-    "Then begins the frantic search through messages, social media, email, bookmarks and files. Sound familiar?"
-  ],
+  "problem": {
+    "main": "Have you ever remembered a song, video, picture, recipe or useful link you saw a few months ago — but couldn’t remember where you saw it or where you saved it? Then begins the frantic search through messages, social media, email, bookmarks and files.",
+    "prompt": "Sound familiar?",
+    "rescue": "Here comes Share & Learn to your rescue!"
+  },
   "flow": [],
   "why": {
-    "heading": "Why Share & Learn?",
+    "heading": "What is it?",
     "paragraphs": [
       "Keep talking and sharing wherever you normally do.",
       "When something is worth keeping, simply forward it to Share & Learn — an easy way to bring it along without interrupting what you’re doing.",
