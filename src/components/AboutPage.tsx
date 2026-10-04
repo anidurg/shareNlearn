@@ -97,11 +97,11 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
       </header>
 
       <div className="about-problem">
-        {about.problem.map((text, index) => (
-          <p key={text} className={index === 0 ? "about-lede about-problem-lead" : "about-lede"}>
-            {text}
-          </p>
-        ))}
+        <p className="about-lede">{about.problem.main}</p>
+        <p className="about-lede"><strong>{about.problem.prompt}</strong></p>
+        <p className="about-lede">
+          Here comes <strong>Share &amp; Learn</strong> to your rescue!
+        </p>
       </div>
 
       <ol className="about-flow" aria-label="The idea behind Share & Learn">
@@ -115,7 +115,13 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
 
       <section className="about-section">
         <h2 className="about-section-title">{about.why.heading}</h2>
-        <Paragraphs items={about.why.paragraphs} />
+        <p className="about-lede">{about.why.paragraphs[0]}</p>
+        <p className="about-lede">
+          When something is worth keeping, simply <strong>forward it to Share &amp; Learn</strong> — an easy way to bring it along without interrupting what you’re doing.
+        </p>
+        <p className="about-lede">
+          <strong>Preserve it, organize it and find it again for yourself</strong>, or share it with a community when you choose.
+        </p>
       </section>
 
       <section className="about-section">
