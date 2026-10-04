@@ -1100,9 +1100,23 @@ export function BookQuotes({ title, quotes }: { title: string; quotes: string[] 
 /** Opens in a new tab; the URL was checked server-side before it was stored. */
 export function BuyLink({ url }: { url: string | null }) {
   if (!url) return null;
+
+  // Keep the book action retailer-neutral, but make an Amazon destination clear
+  // before somebody taps it. This is intentionally not labelled an affiliate
+  // link yet: that disclosure belongs here only after the URL carries our real
+  // Amazon Associates tag.
+  let isAmazon = false;
+  try {
+    const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(url) ? url : `https://${url}`;
+    const host = new URL(candidate).hostname.toLowerCase();
+    isAmazon = host === "amazon.com" || host.endsWith(".amazon.com");
+  } catch {
+    // The form/server already validate URLs; keep the generic fallback harmless.
+  }
+
   return (
     <a className="btn btn-ghost buy-link" href={url} target="_blank" rel="noopener noreferrer">
-      Buy a copy ↗
+      {isAmazon ? "Available on Amazon ↗" : "Buy a copy ↗"}
     </a>
   );
 }
