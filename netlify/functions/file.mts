@@ -1,5 +1,5 @@
 import type { Config, Context } from "@netlify/functions";
-import { and, eq, like, or } from "drizzle-orm";
+import { and, eq, like } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { postFieldValues, posts, savedItems } from "../../db/schema.js";
 import { admittedAccess } from "../lib/access.js";
@@ -46,7 +46,7 @@ export default async (req: Request, context: Context) => {
 
   // The uploader can preview a file before saving the form. Everyone else
   // must be able to read a share that actually references this exact blob key.
-  if (!key.startsWith(`${access.user.id}_`)) {
+  {
     const references = await db.select({
       itemType: postFieldValues.itemType,
       itemId: postFieldValues.itemId,
@@ -77,7 +77,11 @@ export default async (req: Request, context: Context) => {
         .limit(1);
       if (readableSaved) { allowed = true; break; }
     }
-    if (!allowed) return new Response("File not found", { status: 404 });
+    // A newly uploaded file has no answer row yet; its uploader may preview it.
+    // Once attached to a share, the share permissions always take precedence.
+    if (!allowed && !(references.length === 0 && key.startsWith(`${access.user.id}_`))) {
+      return new Response("File not found", { status: 404 });
+    }
   }
 
   const result = await attachmentStore().getWithMetadata(key, { type: "arrayBuffer" });
