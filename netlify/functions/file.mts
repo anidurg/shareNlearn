@@ -41,7 +41,7 @@ export default async (req: Request, context: Context) => {
   const bytes = new Uint8Array(result.data as ArrayBuffer);
   const contentType =
     (result.metadata?.contentType as string | undefined) || "application/octet-stream";
-  const inline = contentType === "application/pdf" || contentType.startsWith("audio/");
+  const inline = contentType === "application/pdf" || contentType.startsWith("audio/") || contentType === "video/mp4";
 
   const range = req.headers.get("range");
   await recordServed(uploaderOf(key), servedByteCount(bytes, range));
