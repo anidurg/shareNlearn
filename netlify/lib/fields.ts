@@ -275,6 +275,7 @@ export function maxBytesFrom(value: unknown): number | null {
  */
 export function maxBytesOf(row: FieldRow): number {
   if (uploadKindOf(row) === "audio") return MAX_AUDIO_BYTES;
+  if (uploadKindOf(row) === "video") return MAX_ATTACHMENT_BYTES;
   return maxBytesFrom(row.maxBytes) ?? MAX_ATTACHMENT_BYTES;
 }
 
@@ -284,7 +285,7 @@ export function maxBytesOf(row: FieldRow): number {
  * upload field written before a field could take audio already meant — so
  * nothing had to be back-filled and nothing stored changed its meaning.
  */
-export const UPLOAD_KINDS = ["document", "audio"] as const;
+export const UPLOAD_KINDS = ["document", "audio", "video"] as const;
 export type UploadKind = (typeof UPLOAD_KINDS)[number];
 
 export function isUploadKind(value: unknown): value is UploadKind {
@@ -621,8 +622,10 @@ function valueFor(
     // Audio is not a document and is not asked the document questions: what it
     // takes is a recording, so there are no formats to tick and only ever one of
     // them. Its ceiling is the recording one, which `maxBytesOf()` already knows.
-    const audio = uploadKindOf(field) === "audio";
-    const allowed = audio ? [] : fileTypesOf(field);
+    const uploadKind = uploadKindOf(field);
+    const audio = uploadKind === "audio";
+    const video = uploadKind === "video";
+    const allowed = audio || video ? [] : fileTypesOf(field);
     const ceiling = maxBytesOf(field);
     const kept = parseAttachments(value).filter((file) => {
       // A key names its uploader, so a member can only attach their own — or one
@@ -634,13 +637,17 @@ function valueFor(
       // nothing anybody already answered.
       if (keeping?.has(file.key)) return true;
       if (file.size > ceiling) return false;
+      // The attachment envelope carries its name but not its MIME type. Do not
+      // allow an MP4 to be filed as audio/document, or vice versa.
+      if (video && !/\.mp4$/i.test(file.name)) return false;
+      if (uploadKind === "document" && /\.mp4$/i.test(file.name)) return false;
       if (allowed.length > 0) {
         const type = attachmentTypeFor("", file.name);
         if (!type || !allowed.includes(type.id)) return false;
       }
       return true;
     });
-    const room = !audio && field.multiple ? MAX_FILES_PER_FIELD : 1;
+    const room = !audio && !video && field.multiple ? MAX_FILES_PER_FIELD : 1;
     return encodeAttachments(kept.slice(0, room)) || null;
   }
   if (kind === "select") {
@@ -698,7 +705,7 @@ export function tooMuchUploaded(
   let total = 0;
   for (const field of fields) {
     if (field.status !== "active" || fieldKindOf(field.kind) !== "file") continue;
-    const room = uploadKindOf(field) !== "audio" && field.multiple ? MAX_FILES_PER_FIELD : 1;
+    const room = uploadKindOf(field) === "document" && field.multiple ? MAX_FILES_PER_FIELD : 1;
     for (const file of parseAttachments(answers.get(field.id) ?? "").slice(0, room)) {
       if (Number.isFinite(file.size) && file.size > 0) total += file.size;
     }
@@ -909,6 +916,8 @@ function valueResponses(rows: { field: FieldRow; value: string }[]) {
       fieldId: row.field.id,
       label: row.field.label,
       kind: fieldKindOf(row.field.kind),
+      // Preserve the field's configured media kind for correct MP4 playback.
+      uploadKind: fieldKindOf(row.field.kind) === "file" ? uploadKindOf(row.field) : null,
       value: row.value,
     }));
 }
