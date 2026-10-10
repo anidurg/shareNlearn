@@ -21,11 +21,11 @@ Videos are attachments, not a new top-level content type. Existing built-in and 
 
 ## Implementation order
 
-1. **Backend contract first.** Add `video` to server-side upload-kind parsing and validation; retain existing `document` and `audio` semantics. Define a separate video size ceiling, initially *proposed* at 50 MiB, and reconcile it with the existing 50 MiB combined field-attachment ceiling. Do not silently raise existing document/audio limits. Ensure the upload-part and collect/stitch paths enforce the video ceiling server-side and that uploaded video MIME/extension is validated before storage.
+1. **Backend contract first.** Add `video` to server-side upload-kind parsing and validation; retain existing `document` and `audio` semantics. Set the video size ceiling to **10 MiB** (client, claim endpoint, and field validation); keep the existing 50 MiB combined field-attachment ceiling unchanged. Revisit the video ceiling after reviewing actual uploaded file sizes. Do not silently raise existing document/audio limits. Ensure the upload-part and collect/stitch paths enforce the video ceiling server-side and that uploaded video MIME/extension is validated before storage.
 2. **Upload endpoint.** Add a dedicated authenticated video claim endpoint or carefully generalized field-media endpoint. Reuse multipart upload parts and `field-files` storage; persist accurate video content type and name. Check upload throttling and cleanup on failed or abandoned uploads.
 3. **Category editor and form.** Offer Video as an upload kind in the category field editor, with a video file picker and progress/error feedback. Do not allow a video to be stored in an audio field or a document field. Add responsive HTML5 `<video controls playsInline preload="metadata">` to the saved field-answer view; retain the downloadable link as fallback.
 4. **Incoming Share.** Recognize MP4 video from Android, upload through the new endpoint, and seed only a compatible field. When the chosen category has no video field, explain this before uploading or saving, with an option to save the source URL as a Bookmark when available.
-5. **Test coverage.** Exercise server-side size/type checks, upload parts, final save (including the combined 50 MiB rule), video playback with Range requests, permissions, share-target handoff, and cancellation/retry. Test actual Android WhatsApp MP4 shares, iPhone Safari manual uploads, and saved-item playback.
+5. **Test coverage.** Exercise server-side size/type checks, upload parts, final save (including the 10 MiB per-video and combined 50 MiB rules), video playback with Range requests, permissions, share-target handoff, and cancellation/retry. Test actual Android WhatsApp MP4 shares, iPhone Safari manual uploads, and saved-item playback.
 
 ## Security and behavior checks
 
@@ -37,3 +37,8 @@ Videos are attachments, not a new top-level content type. Existing built-in and 
 ## Release gate
 
 Do not merge or deploy until TypeScript/build checks pass, server validation and cleanup are verified, and a real Android WhatsApp video is saved and played back from its Circle. The iOS Share Extension remains a separate future phase.
+
+## Follow-up: real-world upload sizes
+
+- Review the actual sizes of previously shared audio, video, and document files (counts, median, 90th percentile, maximum, and number exceeding 10 MiB) using authorized application/database or blob-store records. Repository source code alone cannot provide this history.
+- Revisit the 10 MiB video cap if the data shows a practical need. Existing audio and document limits were not changed as part of this video-cap adjustment.
