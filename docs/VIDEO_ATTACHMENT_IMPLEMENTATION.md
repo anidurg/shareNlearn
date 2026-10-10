@@ -1,44 +1,49 @@
-# Video attachments in existing Share & Learn content types
+# Video attachments in Share & Learn — PR #2
 
-Status: implementation design / no production behavior changed.
+## Status
 
-## Product decision
+Implemented on the `feature/video-field-attachments` branch in [Draft PR #2](https://github.com/anidurg/shareNlearn/pull/2). **Not merged into `main`; production is unchanged.**
 
-Videos are attachments, not a new top-level content type. Existing built-in and custom categories may accept video when the category supports an appropriate upload field. Keep the Android PWA share-target declaration and service-worker mailbox intact. The first release targets MP4 (H.264/AAC) and short clips, with explicit rejection of unsupported formats rather than mislabeled audio.
+Video is an attachment type for existing built-in and custom categories, not a new top-level content type. The initial supported upload format is MP4 (`video/mp4`, `.mp4`). Browser/device codec compatibility still depends on the encoding of the file; the app does not transcode videos.
 
-## Existing code reviewed
+## Current limits
 
-- `public/manifest.webmanifest` already declares `video/mp4` and `.mp4` for Android share targeting.
-- `public/sw.js` receives the file and stores it in the incoming-share mailbox.
-- `src/components/IncomingShareScreen.tsx` deliberately rejects `video/*` before audio classification. This guard must remain until video upload is end-to-end.
-- `src/api.ts`: documents <=10 MiB, audio <=20 MiB, photos <=5 MiB after resizing, up to 10 photos; chunking uses 4 MiB parts.
-- `netlify/lib/fields.ts`: `UPLOAD_KINDS` is `document | audio`; server validates each field and caps the sum of field attachment sizes at 50 MiB.
-- `src/components/ManageFields.tsx`: upload kind selector and configuration.
-- `src/components/CategoryFields.tsx`: upload picker, incoming attachment compatibility, saved attachment rendering.
-- `netlify/functions/field-audio.mts`: claims chunked uploads into the existing field-files blob store.
-- `netlify/functions/file.mts`: serves field-files with range support, currently inline only for PDF/audio.
-- `netlify/lib/attachments.ts`: attachment metadata, storage, and URL helpers.
+| Attachment type | Per-file upload limit |
+| --- | --- |
+| Video | **10 MiB** |
+| Document | 10 MiB |
+| Audio field recording | 20 MiB |
 
-## Implementation order
+The existing **50 MiB combined field-attachment limit per share** remains unchanged. Video uploads use the existing 4 MiB chunk transport. Client-side checks, the server upload endpoint, and server field validation enforce the video cap.
 
-1. **Backend contract first.** Add `video` to server-side upload-kind parsing and validation; retain existing `document` and `audio` semantics. Set the video size ceiling to **10 MiB** (client, claim endpoint, and field validation); keep the existing 50 MiB combined field-attachment ceiling unchanged. Revisit the video ceiling after reviewing actual uploaded file sizes. Do not silently raise existing document/audio limits. Ensure the upload-part and collect/stitch paths enforce the video ceiling server-side and that uploaded video MIME/extension is validated before storage.
-2. **Upload endpoint.** Add a dedicated authenticated video claim endpoint or carefully generalized field-media endpoint. Reuse multipart upload parts and `field-files` storage; persist accurate video content type and name. Check upload throttling and cleanup on failed or abandoned uploads.
-3. **Category editor and form.** Offer Video as an upload kind in the category field editor, with a video file picker and progress/error feedback. Do not allow a video to be stored in an audio field or a document field. Add responsive HTML5 `<video controls playsInline preload="metadata">` to the saved field-answer view; retain the downloadable link as fallback.
-4. **Incoming Share.** Recognize MP4 video from Android, upload through the new endpoint, and seed only a compatible field. When the chosen category has no video field, explain this before uploading or saving, with an option to save the source URL as a Bookmark when available.
-5. **Test coverage.** Exercise server-side size/type checks, upload parts, final save (including the 10 MiB per-video and combined 50 MiB rules), video playback with Range requests, permissions, share-target handoff, and cancellation/retry. Test actual Android WhatsApp MP4 shares, iPhone Safari manual uploads, and saved-item playback.
+## Implemented behavior
 
-## Security and behavior checks
+- Category field configuration supports **Video** as an upload kind alongside Audio and Document.
+- A video field accepts one MP4, with upload errors, preview, removal, and inline HTML5 playback after saving.
+- Android Share Sheet / WhatsApp MP4 sharing can pass a video into the app's existing incoming-share flow and save it to a compatible field in a Circle.
+- Field-file serving (`/api/files/:key`) requires authentication and checks visibility of the referencing share, including applicable saved-library rules. The uploader can preview a newly uploaded, not-yet-attached file. Private file responses use `Cache-Control: private, no-store`.
+- The footer shows build commit, deploy context, and build timestamp for preview verification.
 
-- Existing `/api/files/:key` uses unguessable blob keys without login. Confirm whether that access model is acceptable for Circle videos before rollout; video previews must not accidentally expose private Circle content.
-- Verify whether `audioContentType` treating `.mp4` as audio could cause an MP4 with a missing MIME type to be routed incorrectly. Preserve explicit video-first classification and avoid ambiguous extension-only acceptance.
-- Verify browser codec compatibility. MP4 is a container, not a guarantee that a particular device can play its codecs. Prefer a documented supported encoding rather than automatic server-side transcoding in the first release.
-- Do not treat the Android manifest's `video/mp4` declaration as proof that the app can save video. The share-target reception and persistence are separate capabilities.
+## Tests completed on Deploy Preview
 
-## Release gate
+- MP4 upload, save, and playback for a file below the limit.
+- MP4 **under 10 MiB accepted** and **over 10 MiB rejected**.
+- Android WhatsApp → Android Share Sheet → Share & Learn → Circle save and playback.
+- Existing audio and PDF attachments still play/open for an authorized Circle member.
+- Copied direct video URL denied while logged out and for a signed-in non-member; unauthorized PDF and Excel URLs also denied. These tests do **not** establish that every access-revocation scenario is covered.
+- TypeScript check and Vite build passed during prior PR checks. Recheck the latest CI status before merge.
 
-Do not merge or deploy until TypeScript/build checks pass, server validation and cleanup are verified, and a real Android WhatsApp video is saved and played back from its Circle. The iOS Share Extension remains a separate future phase.
+## Outstanding work and release considerations
 
-## Follow-up: real-world upload sizes
+See [`docs/todo.md`](todo.md) for the detailed deferred work and verification steps:
 
-- Review the actual sizes of previously shared audio, video, and document files (counts, median, 90th percentile, maximum, and number exceeding 10 MiB) using authorized application/database or blob-store records. Repository source code alone cannot provide this history.
-- Revisit the 10 MiB video cap if the data shows a practical need. Existing audio and document limits were not changed as part of this video-cap adjustment.
+1. **Server-side attachment metadata validation:** verify saved-answer name, size, content type, and uploader against trusted stored uploads; don't rely on client-submitted attachment metadata.
+2. **Circle permission revocation regression:** test a copied file URL after Circle membership changes, including saved-library exceptions and block/hide behavior.
+3. **Circle photo privacy:** `/api/photos/:key` still lacks equivalent Circle authorization and uses public immutable caching. This was explicitly deferred; successful field-file tests do not protect photos.
+4. **Historical file-size audit:** obtain actual audio/video/document size distributions from authorized storage/database records before considering an increase to the video cap.
+
+Other coverage not yet confirmed here includes iPhone Safari manual MP4 uploads, cancellation/retry, abandoned upload cleanup, and comprehensive automated authorization tests. Native iOS Share Extension support is a separate future phase.
+
+## Release decision
+
+**PR #2 remains Draft.** The functional tests above passed, but outstanding security work and deferred photo privacy must be acknowledged explicitly before any decision to merge. Do not merge or deploy to production without user approval.
