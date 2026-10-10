@@ -14,6 +14,8 @@ import {
   notAudioReason,
   parseFieldFiles,
   uploadFieldAudio,
+  uploadFieldVideo,
+  MAX_VIDEO_BYTES,
   uploadFieldFile,
   webAddress,
   type AudioWay,
@@ -98,8 +100,9 @@ export function fieldTakesAttachment(
 ): boolean {
   if (field.kind !== "file" || field.hidden) return false;
   if (field.maxBytes !== null && attachment.file.size > field.maxBytes) return false;
+  if (attachment.uploadKind === "video") return field.uploadKind === "video";
   if (attachment.uploadKind === "audio") return field.uploadKind === "audio";
-  if (field.uploadKind === "audio") return false;
+  if (field.uploadKind !== "document") return false;
   // An empty list is the field saying "any of the three", which is what every
   // upload field written before the column existed reads as.
   return (
@@ -346,6 +349,8 @@ function FieldInput({
     // sung into it or picked, whichever ways the field allows.
     return field.uploadKind === "audio" ? (
       <AudioFieldInput field={field} value={value} onChange={onChange} />
+    ) : field.uploadKind === "video" ? (
+      <VideoFieldInput field={field} value={value} onChange={onChange} />
     ) : (
       <FileFieldInput field={field} value={value} onChange={onChange} />
     );
@@ -417,6 +422,48 @@ function FieldInput({
  * All three are checked here so the refusal is a sentence at pick time, and again
  * on the server, which is the one that counts.
  */
+function VideoFieldInput({
+  field, value, onChange,
+}: {
+  field: CategoryField;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const chosen = parseFieldFiles(value);
+  async function take(file: File | null) {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const uploaded = await uploadFieldVideo(file);
+      onChange(fieldFilesValue([uploaded]));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The video could not be uploaded.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="field file-field">
+      <span className="field-label">{field.label}{field.required && " · needed"}</span>
+      {chosen.map((file) => (
+        <div key={file.key}>
+          <video controls playsInline preload="metadata" src={file.url} style={{ maxWidth: "100%", maxHeight: 320 }} />
+          <p>{file.name} · {formatBytes(file.size)}</p>
+          <button type="button" disabled={busy} onClick={() => onChange(fieldFilesValue([]))}>Remove video</button>
+        </div>
+      ))}
+      <input type="file" accept="video/mp4,.mp4" disabled={busy}
+        onChange={(event) => { void take(event.target.files?.[0] ?? null); event.target.value = ""; }} />
+      <span className="field-hint">MP4 video, up to {formatBytes(MAX_VIDEO_BYTES)}. One video per field.</span>
+      {busy && <p>Uploading video…</p>}
+      <ErrorLine message={error} />
+    </div>
+  );
+}
+
 function FileFieldInput({
   field,
   value,
