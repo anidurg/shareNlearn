@@ -916,6 +916,8 @@ function valueResponses(rows: { field: FieldRow; value: string }[]) {
       fieldId: row.field.id,
       label: row.field.label,
       kind: fieldKindOf(row.field.kind),
+      // Preserve the field's configured media kind for correct MP4 playback.
+      uploadKind: fieldKindOf(row.field.kind) === "file" ? uploadKindOf(row.field) : null,
       value: row.value,
     }));
 }
