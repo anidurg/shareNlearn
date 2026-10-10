@@ -1144,7 +1144,7 @@ export default function App() {
         <p>Share &amp; Learn — for the group that cooks, sings, and swaps what it knows.</p>
         <p className="site-footer-links">
           <small title={`Built ${import.meta.env.VITE_BUILD_TIME}`}>
-            Build: ${'\u007b'}import.meta.env.VITE_BUILD_COMMIT} · ${'\u007b'}import.meta.env.VITE_BUILD_CONTEXT} · ${'\u007b'}new Date(import.meta.env.VITE_BUILD_TIME).toLocaleString()}
+            Build: {import.meta.env.VITE_BUILD_COMMIT} · {import.meta.env.VITE_BUILD_CONTEXT} · {new Date(import.meta.env.VITE_BUILD_TIME).toLocaleString()}
           </small>
         </p>
         <p className="site-footer-links">
