@@ -4164,7 +4164,7 @@ export async function uploadFieldVideo(
   if (file.size > MAX_VIDEO_BYTES) {
     throw new Error(`That video is ${formatBytes(file.size)}. Please choose one under ${formatBytes(MAX_VIDEO_BYTES)}.`);
   }
-  if (!/\\.mp4$/i.test(file.name) || file.type !== "video/mp4") {
+  if (!/\.mp4$/i.test(file.name) || file.type !== "video/mp4") {
     throw new Error("Please choose an MP4 video.");
   }
   const { uploadId, parts } = await putParts(file, onProgress);
