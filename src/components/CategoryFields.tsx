@@ -846,15 +846,10 @@ function FieldAnswer({ row }: { row: PostFieldValue }) {
   if (files.length === 0) return <Linkified text={row.value} />;
   return (
     <span className="field-files">
-      {/* A recording plays where it sits, because the answer to "sing it" is the
-          singing rather than a link to it. Which answers are audio is read off the
-          filename: a stored answer says its key, its name and its size and nothing
-          about the field that asked for it, so the name is the only thing here that
-          knows — and the name is ours, `field-audio.mts` giving every take an audio
-          extension whether the member named it or not. The link is still under it,
-          for a member who would rather download it. */}
+      {/* Use the configured field type for playback: MP4 may be audio or video.
+          Older API responses without uploadKind keep the existing audio fallback. */}
       {files.map((file) =>
-        file.name.toLowerCase().endsWith(".mp4") ? (
+        row.uploadKind === "video" ? (
           <span className="field-file-audio" key={file.key}>
             <video controls playsInline preload="metadata" src={file.url}
               style={{ maxWidth: "100%", maxHeight: 360 }} />
