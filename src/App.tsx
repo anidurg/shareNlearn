@@ -1143,6 +1143,11 @@ export default function App() {
       <footer className="site-footer">
         <p>Share &amp; Learn — for the group that cooks, sings, and swaps what it knows.</p>
         <p className="site-footer-links">
+          <small title={`Built ${import.meta.env.VITE_BUILD_TIME}`}>
+            Build: ${'\u007b'}import.meta.env.VITE_BUILD_COMMIT} · ${'\u007b'}import.meta.env.VITE_BUILD_CONTEXT} · ${'\u007b'}new Date(import.meta.env.VITE_BUILD_TIME).toLocaleString()}
+          </small>
+        </p>
+        <p className="site-footer-links">
           <button className="btn-text" onClick={() => goToTab("about")}>
             About Share &amp; Learn
           </button>
