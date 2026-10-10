@@ -1916,6 +1916,8 @@ export interface PostFieldValue {
   fieldId: number;
   label: string;
   kind: FieldKind;
+  /** Saved upload field type; absent on older API responses. */
+  uploadKind?: UploadKind | null;
   value: string;
 }
 
