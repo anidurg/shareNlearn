@@ -4167,19 +4167,7 @@ export async function uploadFieldVideo(
   if (!/\\.mp4$/i.test(file.name) || file.type !== "video/mp4") {
     throw new Error("Please choose an MP4 video.");
   }
-  // uploadSongParts() uses the audio content type helper, which would mislabel
-  // an MP4 video. Use the underlying generic part writer instead.
-  const uploadId = crypto.randomUUID();
-  const parts = Math.ceil(file.size / PART_BYTES);
-  for (let i = 0; i < parts; i++) {
-    const slice = file.slice(i * PART_BYTES, (i + 1) * PART_BYTES);
-    await parseOrThrow(await request(`/api/uploads/${uploadId}/parts/${i}`, {
-      method: "PUT",
-      body: slice,
-      headers: { "Content-Type": "application/octet-stream" },
-    }));
-    onProgress?.(Math.round(((i + 1) / parts) * 90));
-  }
+  const { uploadId, parts } = await putParts(file, onProgress);
   const data = await parseOrThrow(await send("/api/field-video", "POST", {
     uploadId, parts, contentType: "video/mp4", name: file.name,
   }));
