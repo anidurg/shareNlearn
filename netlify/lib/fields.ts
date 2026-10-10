@@ -640,7 +640,7 @@ function valueFor(
       // The attachment envelope carries its name but not its MIME type. Do not
       // allow an MP4 to be filed as audio/document, or vice versa.
       if (video && !/\.mp4$/i.test(file.name)) return false;
-      if (!video && /\.mp4$/i.test(file.name)) return false;
+      if (uploadKind === "document" && /\.mp4$/i.test(file.name)) return false;
       if (allowed.length > 0) {
         const type = attachmentTypeFor("", file.name);
         if (!type || !allowed.includes(type.id)) return false;
