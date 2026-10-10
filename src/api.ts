@@ -1848,12 +1848,13 @@ export const MAX_FIELDS_PER_CATEGORY = 12;
  * the server reads a missing answer as `document` rather than making anybody
  * revisit a field they already configured.
  */
-export type UploadKind = "document" | "audio";
+export type UploadKind = "document" | "audio" | "video";
 
 /** The two, as the field form asks about them. */
 export const UPLOAD_KIND_OPTIONS: { id: UploadKind; label: string }[] = [
   { id: "document", label: "Document" },
   { id: "audio", label: "Audio" },
+  { id: "video", label: "Video" },
 ];
 
 /**
@@ -4147,6 +4148,41 @@ export async function uploadFieldAudio(
       name: options.name ?? "",
     }),
   );
+  onProgress?.(100);
+  return data.file;
+}
+
+/** The initial limit for an MP4 video attached to a category. */
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+/** Send a short MP4 through the same 4 MiB chunk transport as recordings. */
+export async function uploadFieldVideo(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<FieldFile> {
+  if (file.size === 0) throw new Error("That video is empty.");
+  if (file.size > MAX_VIDEO_BYTES) {
+    throw new Error(`That video is ${formatBytes(file.size)}. Please choose one under ${formatBytes(MAX_VIDEO_BYTES)}.`);
+  }
+  if (!/\\.mp4$/i.test(file.name) || file.type !== "video/mp4") {
+    throw new Error("Please choose an MP4 video.");
+  }
+  // uploadSongParts() uses the audio content type helper, which would mislabel
+  // an MP4 video. Use the underlying generic part writer instead.
+  const uploadId = crypto.randomUUID();
+  const parts = Math.ceil(file.size / PART_BYTES);
+  for (let i = 0; i < parts; i++) {
+    const slice = file.slice(i * PART_BYTES, (i + 1) * PART_BYTES);
+    await parseOrThrow(await request(`/api/uploads/${uploadId}/parts/${i}`, {
+      method: "PUT",
+      body: slice,
+      headers: { "Content-Type": "application/octet-stream" },
+    }));
+    onProgress?.(Math.round(((i + 1) / parts) * 90));
+  }
+  const data = await parseOrThrow(await send("/api/field-video", "POST", {
+    uploadId, parts, contentType: "video/mp4", name: file.name,
+  }));
   onProgress?.(100);
   return data.file;
 }
