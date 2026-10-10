@@ -854,7 +854,18 @@ function FieldAnswer({ row }: { row: PostFieldValue }) {
           extension whether the member named it or not. The link is still under it,
           for a member who would rather download it. */}
       {files.map((file) =>
-        isAudioFileName(file.name) ? (
+        file.name.toLowerCase().endsWith(".mp4") ? (
+          <span className="field-file-audio" key={file.key}>
+            <video controls playsInline preload="metadata" src={file.url}
+              style={{ maxWidth: "100%", maxHeight: 360 }} />
+            <a className="field-file-link" href={file.url} target="_blank" rel="noreferrer">
+              <span className="field-file-kind">Video</span>
+              <span className="field-file-name">{file.name}</span>
+              {file.size > 0 && <span className="muted"> · {formatBytes(file.size)}</span>}
+              <span className="field-file-open">Open</span>
+            </a>
+          </span>
+        ) : isAudioFileName(file.name) ? (
           <span className="field-file-audio" key={file.key}>
             <audio controls preload="none" src={file.url} className="recorder-preview" />
             <a
