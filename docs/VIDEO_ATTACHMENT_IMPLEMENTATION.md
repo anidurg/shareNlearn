@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented on the `feature/video-field-attachments` branch in [Draft PR #2](https://github.com/anidurg/shareNlearn/pull/2). **Not merged into `main`; production is unchanged.**
+Originally implemented and merged in [PR #2](https://github.com/anidurg/shareNlearn/pull/2). The video limit was subsequently restored to 50 MiB in a follow-up change.
 
 Video is an attachment type for existing built-in and custom categories, not a new top-level content type. The initial supported upload format is MP4 (`video/mp4`, `.mp4`). Browser/device codec compatibility still depends on the encoding of the file; the app does not transcode videos.
 
@@ -27,7 +27,7 @@ The existing **50 MiB combined field-attachment limit per share** remains unchan
 ## Tests completed on Deploy Preview
 
 - MP4 upload, save, and playback for a file below the limit.
-- MP4 **under 10 MiB accepted** and **over 10 MiB rejected**.
+- While the earlier 10 MiB limit was active, an MP4 under 10 MiB was accepted and one over 10 MiB was rejected. These are historical tests, not the current cap.
 - Android WhatsApp → Android Share Sheet → Share & Learn → Circle save and playback.
 - Existing audio and PDF attachments still play/open for an authorized Circle member.
 - Copied direct video URL denied while logged out and for a signed-in non-member; unauthorized PDF and Excel URLs also denied. These tests do **not** establish that every access-revocation scenario is covered.
@@ -40,13 +40,13 @@ See [`docs/todo.md`](todo.md) for the detailed deferred work and verification st
 1. **Server-side attachment metadata validation:** verify saved-answer name, size, content type, and uploader against trusted stored uploads; don't rely on client-submitted attachment metadata.
 2. **Circle permission revocation regression:** test a copied file URL after Circle membership changes, including saved-library exceptions and block/hide behavior.
 3. **Circle photo privacy:** `/api/photos/:key` still lacks equivalent Circle authorization and uses public immutable caching. This was explicitly deferred; successful field-file tests do not protect photos.
-4. **Historical file-size audit:** obtain actual audio/video/document size distributions from authorized storage/database records before considering an increase to the video cap.
+4. **Historical file-size audit:** obtain actual audio/video/document size distributions from authorized storage/database records when reviewing future upload limits.
 
 Other coverage not yet confirmed here includes iPhone Safari manual MP4 uploads, cancellation/retry, abandoned upload cleanup, and comprehensive automated authorization tests. Native iOS Share Extension support is a separate future phase.
 
 ## Release decision
 
-**PR #2 remains Draft.** The functional tests above passed, but outstanding security work and deferred photo privacy must be acknowledged explicitly before any decision to merge. Do not merge or deploy to production without user approval.
+PR #2 has been merged. Outstanding security work and deferred photo privacy remain documented in `docs/todo.md`; merging did not resolve them.
 
 ## Follow-up change: 50 MiB MP4 cap
 
