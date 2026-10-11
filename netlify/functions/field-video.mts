@@ -6,11 +6,11 @@ import { admittedUser } from "../lib/access.js";
 import {
   attachmentKeyFor,
   attachmentNameOf,
-  MAX_ATTACHMENT_BYTES,
   attachmentStore,
   attachmentUrl,
 } from "../lib/attachments.js";
 import { collectParts, partsFrom } from "../lib/audio-uploads.js";
+import { MAX_ITEM_UPLOAD_BYTES } from "../lib/fields.js";
 import { badRequest, jsonBody, unauthorized } from "../lib/items.js";
 import { throttleUpload } from "../lib/upload-rate.js";
 
@@ -33,8 +33,8 @@ export default async (req: Request) => {
   }
 
   const collected = await collectParts(user.id, upload.uploadId, upload.parts, {
-    bytes: MAX_ATTACHMENT_BYTES,
-    refusal: "That video exceeds the 10 MB limit.",
+    bytes: MAX_ITEM_UPLOAD_BYTES,
+    refusal: "That video exceeds the 50 MB limit.",
   });
   if (collected.error) return collected.error;
   const video = collected.audio;
