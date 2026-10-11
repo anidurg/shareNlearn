@@ -10,11 +10,11 @@ Video is an attachment type for existing built-in and custom categories, not a n
 
 | Attachment type | Per-file upload limit |
 | --- | --- |
-| Video | **10 MiB** |
+| Video | **50 MiB** |
 | Document | 10 MiB |
 | Audio field recording | 20 MiB |
 
-The existing **50 MiB combined field-attachment limit per share** remains unchanged. Video uploads use the existing 4 MiB chunk transport. Client-side checks, the server upload endpoint, and server field validation enforce the video cap.
+The existing **50 MiB combined field-attachment limit per share** remains unchanged. Video uploads use the existing 4 MiB chunk transport. Client-side checks, the server upload endpoint, and server field validation enforce the video cap. This limit was restored after a real 39 MB MP4 was successfully uploaded and played during earlier PR #2 testing.
 
 ## Implemented behavior
 
@@ -47,3 +47,7 @@ Other coverage not yet confirmed here includes iPhone Safari manual MP4 uploads,
 ## Release decision
 
 **PR #2 remains Draft.** The functional tests above passed, but outstanding security work and deferred photo privacy must be acknowledged explicitly before any decision to merge. Do not merge or deploy to production without user approval.
+
+## Follow-up change: 50 MiB MP4 cap
+
+The MP4 limit was restored from 10 MiB to 50 MiB after a real 39 MB video was reported to have uploaded, saved, and played successfully during earlier PR #2 testing. Audio and document limits remain unchanged. The combined per-share field-attachment limit remains 50 MiB. Re-test the 39 MB video and an over-50 MiB video after deployment; the prior successful large-video test does not replace validation of this release.
