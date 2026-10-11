@@ -4155,7 +4155,7 @@ export async function uploadFieldAudio(
 }
 
 /** The initial limit for an MP4 video attached to a category. */
-export const MAX_VIDEO_BYTES = 10 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
 /** Send a short MP4 through the same 4 MiB chunk transport as recordings. */
 export async function uploadFieldVideo(
