@@ -275,7 +275,7 @@ export function maxBytesFrom(value: unknown): number | null {
  */
 export function maxBytesOf(row: FieldRow): number {
   if (uploadKindOf(row) === "audio") return MAX_AUDIO_BYTES;
-  if (uploadKindOf(row) === "video") return MAX_ATTACHMENT_BYTES;
+  if (uploadKindOf(row) === "video") return MAX_ITEM_UPLOAD_BYTES;
   return maxBytesFrom(row.maxBytes) ?? MAX_ATTACHMENT_BYTES;
 }
 
