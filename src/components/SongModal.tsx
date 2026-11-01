@@ -21,7 +21,7 @@ import {
   type Visibility,
 } from "../api";
 import { currentFiledCategoryId, currentShelfChoice } from "../categories";
-import { currentFolderPath, type ShareTarget } from "../folders";
+import { currentFolderPath, visibleFolders, type ShareTarget } from "../folders";
 import type { SharePrefill } from "../incoming-share";
 import type { ShareAndLearn } from "../store";
 import {
@@ -143,6 +143,28 @@ export function SongModal({
   const seeded = useRef(Boolean(song) || (store.songScripts?.scripts.length ?? 0) > 0);
   const [visibility, setVisibility] = useState<Visibility>(song?.visibility ?? "shared");
   const [circleIds, setCircleIds] = useState<number[]>(song?.circleIds ?? presetCircleIds);
+  const [folderIdsByCircle, setFolderIdsByCircle] = useState<Record<number, number | null>>(() => {
+    const saved: Record<number, number | null> = {};
+    for (const filing of song?.filings ?? []) saved[filing.circleId] = filing.folderId;
+    if (!song && folder?.id != null && presetCircleIds.length === 1) {
+      saved[presetCircleIds[0]] = folder.id;
+    }
+    return saved;
+  });
+  const folderLoads = useRef(new Set<number>());
+  const [folderErrors, setFolderErrors] = useState<Record<number, string>>({});
+  useEffect(() => {
+    if (visibility === "private") return;
+    for (const id of circleIds) {
+      if (store.circleFolders[id] || folderLoads.current.has(id)) continue;
+      folderLoads.current.add(id);
+      store.loadCircleFolders(id).catch(() => {
+        setFolderErrors((prev) => ({ ...prev, [id]: "Could not load folders. Please retry." }));
+        folderLoads.current.delete(id);
+      });
+    }
+  }, [circleIds.join(","), visibility, store.circleFolders]);
+
   const [shelf, setShelf] = useState<ShelfChoice>(currentShelfChoice(categories, song));
   const [filedCategoryId, setFiledCategoryId] = useState<number | null>(
     currentFiledCategoryId(song),
@@ -253,6 +275,7 @@ export function SongModal({
       readInto,
       visibility,
       circleIds,
+      folderIdsByCircle: Object.fromEntries(circleIds.map((id) => [id, folderIdsByCircle[id] ?? null])),
       ...(asksShelf
         ? { subcategoryId: shelf.id, subcategoryName: shelf.name, filedCategoryId }
         : {}),
@@ -578,11 +601,46 @@ export function SongModal({
         />
 
 
-        {folder ? (
-          <SharingIntoNote path={folder.path} />
-        ) : filedIn ? (
-          <SharedInNote path={filedIn} />
-        ) : (
+        {visibility === "shared" && circleIds.length > 0 && (
+          <div className="song-circle-folders">
+            <span className="field-label">Folders</span>
+            <p className="field-hint">Choose a folder within each Circle, or share at the Circle level.</p>
+            {circleIds.map((id) => {
+              const circle = circles.find((entry) => entry.id === id);
+              const list = store.circleFolders[id];
+              const chosen = folderIdsByCircle[id] ?? null;
+              return (
+                <label className="field song-circle-folder" key={id}>
+                  <span>{circle?.name ?? "Circle"}</span>
+                  <select
+                    value={chosen ?? ""}
+                    disabled={busy || !list}
+                    onChange={(event) => setFolderIdsByCircle((prev) => ({
+                      ...prev, [id]: event.target.value ? Number(event.target.value) : null,
+                    }))}
+                  >
+                    <option value="">No folder — share in Circle</option>
+                    {list && visibleFolders(list).map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.path.join(" › ")}
+                      </option>
+                    ))}
+                  </select>
+                  {!list && <span className="field-hint">{folderErrors[id] ?? "Loading folders…"}</span>}
+                  {folderErrors[id] && (
+                    <button type="button" className="btn" onClick={() => {
+                      setFolderErrors((prev) => { const next = { ...prev }; delete next[id]; return next; });
+                      store.loadCircleFolders(id).catch(() =>
+                        setFolderErrors((prev) => ({ ...prev, [id]: "Could not load folders. Please retry." }))
+                      );
+                    }}>Retry</button>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        )}
+        {asksShelf && (
           <ShelfField
             itemType="song"
             categories={categories}
