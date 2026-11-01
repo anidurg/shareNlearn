@@ -386,7 +386,7 @@ export function SongModal({
         <fieldset className="field song-way">
           <legend>Content</legend>
           <p className="field-hint">Add audio, lyrics, or both. At least one is required.</p>
-          <span className="field-label">Audio (optional)</span>
+          <span className="field-label">Audio</span>
           {/* What is on the song now, so the member can hear it before deciding to
               replace it — and reach the file itself, which is the only link there is
               to a recording. A song shared as words alone says so instead. */}
@@ -441,7 +441,6 @@ export function SongModal({
             </button>
           </div>
           {!canRecord && <p className="field-hint">Recording is not supported in this browser; you can upload audio instead.</p>}
-        </fieldset>
         {way === "record" && canRecord && <AudioRecorder recorder={recorder} disabled={busy} />}
 
         {way === "upload" && (
@@ -500,6 +499,7 @@ export function SongModal({
           }}
         />
         <p className="field-hint">You can share lyrics without adding audio.</p>
+        </fieldset>
         <label className="field">
           <span>Composer (optional)</span>
           <input value={composer} onChange={(e) => setComposer(e.target.value)} disabled={busy} />
