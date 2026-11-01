@@ -436,7 +436,7 @@ export function LyricsField({
 
       {romanised && (
         <label className="field" style={{ textAlign: "left", width: "100%" }}>
-          <span>You have typed in English letters — which way?</span>
+          <span>Roman-letter format</span>
           <select
             value={scheme}
             onChange={(e) => {
@@ -452,8 +452,7 @@ export function LyricsField({
             ))}
           </select>
           <span className="field-hint">
-            Choose how you typed the letters so the words can be shown accurately in
-            other scripts. Without this choice, transliteration is unavailable.
+            Select the format used to type these lyrics for accurate transliteration.
           </span>
         </label>
       )}
@@ -525,7 +524,7 @@ function LyricScriptField({
 
   return (
     <fieldset className="field visibility-picker">
-      <legend>Transliteration to other scripts</legend>
+      <legend>Offer other scripts?</legend>
       <label>
         <input
           type="radio"
@@ -556,13 +555,6 @@ function LyricScriptField({
             emptyNote="None chosen yet — tick the scripts your family reads."
           />
 
-          <span className="field-hint">
-            Readers see a button for each one under the recording. Every one of them
-            changes the letters and nothing else — the same words, the same sounds, an
-            exact conversion by the Aksharamukha tables rather than anything written by
-            AI.
-          </span>
-
           {/* The one way ticking a script can come to nothing, said where the ticking
               happens rather than only beside the question that causes it. */}
           {needsScheme && chosen.length > 0 && (
@@ -574,24 +566,23 @@ function LyricScriptField({
           )}
 
           {chosen.length > 0 && (
-            <div className="lyrics-scripts">
-              <span className="lyrics-scripts-label">Check one</span>
-              {chosen.map((id) => {
-                const option = LYRIC_SCRIPT_OPTIONS.find((entry) => entry.id === id);
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    className={preview === id ? "count-chip count-chip-on" : "count-chip"}
-                    onClick={() => setPreview(preview === id ? null : id)}
-                    aria-pressed={preview === id}
-                    title={`Preview the words in ${option?.label ?? id}`}
-                  >
-                    {option?.native} {option?.label}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="field">
+              <span>Preview a script (optional)</span>
+              <select
+                value={preview ?? ""}
+                onChange={(event) => setPreview(event.target.value as LyricScript || null)}
+              >
+                <option value="">Choose a script to preview</option>
+                {chosen.map((id) => {
+                  const option = LYRIC_SCRIPT_OPTIONS.find((entry) => entry.id === id);
+                  return (
+                    <option key={id} value={id}>
+                      {option?.label ?? id}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
           )}
 
           {preview && <ScriptPreview words={words} scheme={scheme} script={preview} />}
