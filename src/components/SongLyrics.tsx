@@ -453,10 +453,8 @@ export function LyricsField({
             ))}
           </select>
           <span className="field-hint">
-            Saying so is what lets the group read these words in another script, letter
-            for letter. Leave it and there is nothing to convert from — `aa`, `ā` and `A`
-            are three conventions' answer to the same vowel — so no script is offered on
-            this recording.
+            Choose how you typed the letters so the words can be shown accurately in
+            other scripts. Without this choice, transliteration is unavailable.
           </span>
         </label>
       )}
