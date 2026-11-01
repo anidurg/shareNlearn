@@ -30,6 +30,7 @@ import {
   cleanName,
   MAX_TREE_DEPTH,
   normalizeName,
+  nodeHidden,
   pathOf,
   reparentRefusal as reparentRefusalIn,
   similarNode,
