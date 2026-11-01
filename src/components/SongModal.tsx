@@ -114,7 +114,7 @@ export function SongModal({
   // that came out badly. On a new share the default is to sing it, unless this
   // browser cannot — in which case starting on a disabled choice would only look
   // broken.
-  const [way, setWay] = useState<Way>(editing ? "keep" : canRecord ? "record" : "upload");
+  const [way, setWay] = useState<Way>("keep");
   const [songName, setSongName] = useState(song?.songName ?? prefill?.title ?? "");
   const [composer, setComposer] = useState(song?.composer ?? "");
   const [raga, setRaga] = useState(song?.raga ?? "");
@@ -276,8 +276,8 @@ export function SongModal({
     // so: every field on this form is on it either way. On an edit, "keep" is the
     // radio that means "no new bytes", and the song keeps whatever it already had.
     const audio = way === "record" ? recording : way === "upload" ? file : null;
-    if (!editing && !audio && !lyrics.trim()) {
-      setError("Record something, choose a file, or type the words.");
+    if (!audio && !lyrics.trim() && !(editing && song?.blobKey && way === "keep")) {
+      setError("Add a recording or enter lyrics before sharing.");
       return;
     }
     if (editing && way !== "keep" && !audio) {
@@ -372,30 +372,21 @@ export function SongModal({
       busy={busy}
     >
       <form className="auth-form" onSubmit={handleSubmit}>
-        {/* Where it goes, first, the same way it is asked first on every other
-            share form — except that a form opened from inside a folder has
-            already been told, and an edit of something already in one is being
-            shown where it is rather than asked all over again. */}
-        {folder ? (
-          <SharingIntoNote path={folder.path} />
-        ) : filedIn ? (
-          <SharedInNote path={filedIn} />
-        ) : (
-          <ShelfField
-            itemType="song"
-            categories={categories}
-            circles={circles}
-            circleIds={circleIds}
-            value={shelf}
-            onChange={setShelf}
-            filedCategoryId={filedCategoryId}
-            onFiledCategoryIdChange={setFiledCategoryId}
-          />
+        {!editing && (
+          <p className="field-hint">
+            A Song can be a poem or any text, including dEvaranAma, shloka, stotra, sukta, and more.
+          </p>
         )}
+        <label className="field">
+          <span>Song title</span>
+          <input required value={songName} onChange={(e) => setSongName(e.target.value)}
+            disabled={busy} autoFocus />
+        </label>
 
         <fieldset className="field song-way">
-          <legend>{editing ? "How did you share it?" : "How are you sharing it?"}</legend>
-
+          <legend>Content</legend>
+          <p className="field-hint">Add audio, lyrics, or both. At least one is required.</p>
+          <span className="field-label">Audio (optional)</span>
           {/* What is on the song now, so the member can hear it before deciding to
               replace it — and reach the file itself, which is the only link there is
               to a recording. A song shared as words alone says so instead. */}
@@ -432,58 +423,25 @@ export function SongModal({
             </div>
           )}
 
-          {editing && (
-            <label>
-              <input
-                type="radio"
-                checked={way === "keep"}
-                onChange={() => setWay("keep")}
-                disabled={busy}
-              />
-              <span>{song?.blobKey ? "Keep this recording" : "Leave it as words alone"}</span>
-            </label>
-          )}
-          <label>
-            <input
-              type="radio"
-              checked={way === "record"}
-              onChange={() => setWay("record")}
-              disabled={busy || !canRecord}
-            />
-            <span>
-              {editing ? (song?.blobKey ? "Record it again" : "Record it now") : "Record it now"}
-              {!canRecord && <span className="field-hint"> — this browser cannot record</span>}
-            </span>
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={way === "upload"}
-              onChange={() => setWay("upload")}
-              disabled={busy}
-            />
-            <span>
-              {editing && song?.blobKey ? "Upload a different recording" : "Upload a recording"}
-            </span>
-          </label>
-          <span className="field-hint">
-            {editing
-              ? "A new take replaces the one above; everything else about the song stays as it is."
-              : "Both are optional — type the words below and share the song without a recording at all."}
-          </span>
+
+          <div className="song-audio-choices">
+            {editing && (
+              <button type="button" className={way === "keep" ? "btn btn-primary" : "btn"}
+                onClick={() => setWay("keep")} disabled={busy}>
+                {song?.blobKey ? "Keep recording" : "No recording"}
+              </button>
+            )}
+            <button type="button" className={way === "record" ? "btn btn-primary" : "btn"}
+              onClick={() => setWay("record")} disabled={busy || !canRecord}>
+              Record
+            </button>
+            <button type="button" className={way === "upload" ? "btn btn-primary" : "btn"}
+              onClick={() => setWay("upload")} disabled={busy}>
+              Upload
+            </button>
+          </div>
+          {!canRecord && <p className="field-hint">Recording is not supported in this browser; you can upload audio instead.</p>}
         </fieldset>
-
-        <label className="field">
-          <span>Song title</span>
-          <input
-            required
-            value={songName}
-            onChange={(e) => setSongName(e.target.value)}
-            disabled={busy}
-            autoFocus
-          />
-        </label>
-
         {way === "record" && canRecord && <AudioRecorder recorder={recorder} disabled={busy} />}
 
         {way === "upload" && (
@@ -526,15 +484,6 @@ export function SongModal({
           </>
         )}
 
-        <label className="field">
-          <span>Composer (optional)</span>
-          <input value={composer} onChange={(e) => setComposer(e.target.value)} disabled={busy} />
-        </label>
-
-        <label className="field">
-          <span>Raga or style (optional)</span>
-          <input value={raga} onChange={(e) => setRaga(e.target.value)} disabled={busy} />
-        </label>
 
         <LyricsField
           lyrics={lyrics}
@@ -550,30 +499,20 @@ export function SongModal({
             setReadInto(next);
           }}
         />
+        <p className="field-hint">You can share lyrics without adding audio.</p>
+        <label className="field">
+          <span>Composer (optional)</span>
+          <input value={composer} onChange={(e) => setComposer(e.target.value)} disabled={busy} />
+        </label>
 
-        {/* Whatever the chosen circles decided a song here should also say, and the
-            "+" that adds a question — which belongs to the people who answer for the
-            circle, so a plain member sees the questions and no button. */}
-        <SongFields
-          store={store}
-          categories={categories}
-          circleIds={circleIds}
-          values={answers}
-          onChange={setAnswers}
-          attachment={prefill?.attachment}
-        />
+        <label className="field">
+          <span>Raga or style (optional)</span>
+          <input value={raga} onChange={(e) => setRaga(e.target.value)} disabled={busy} />
+        </label>
 
-        <VisibilityPicker
-          value={visibility}
-          onChange={setVisibility}
-          circles={circles}
-          circleIds={circleIds}
-          onCircleIdsChange={setCircleIds}
-          itemType="song"
-          categories={categories}
-          onShelfChange={setShelf}
-        />
 
+        <details className="field">
+          <summary>Additional details</summary>
         <PhotoField
           photos={photos}
           onChange={setPhotos}
@@ -611,6 +550,52 @@ export function SongModal({
           </label>
         )}
 
+
+        {/* Whatever the chosen circles decided a song here should also say, and the
+            "+" that adds a question — which belongs to the people who answer for the
+            circle, so a plain member sees the questions and no button. */}
+        <SongFields
+          store={store}
+          categories={categories}
+          circleIds={circleIds}
+          values={answers}
+          onChange={setAnswers}
+          attachment={prefill?.attachment}
+        />
+
+
+        </details>
+        <div className="field">
+          <span className="field-label">Share with</span>
+        <VisibilityPicker
+          value={visibility}
+          onChange={setVisibility}
+          circles={circles}
+          circleIds={circleIds}
+          onCircleIdsChange={setCircleIds}
+          itemType="song"
+          categories={categories}
+          onShelfChange={setShelf}
+        />
+
+
+        {folder ? (
+          <SharingIntoNote path={folder.path} />
+        ) : filedIn ? (
+          <SharedInNote path={filedIn} />
+        ) : (
+          <ShelfField
+            itemType="song"
+            categories={categories}
+            circles={circles}
+            circleIds={circleIds}
+            value={shelf}
+            onChange={setShelf}
+            filedCategoryId={filedCategoryId}
+            onFiledCategoryIdChange={setFiledCategoryId}
+          />
+        )}
+        </div>
         <ErrorLine message={error} />
 
         {uploading && (
