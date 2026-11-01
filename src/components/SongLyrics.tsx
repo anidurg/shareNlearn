@@ -416,9 +416,8 @@ export function LyricsField({
           placeholder="Type the words as you know them, one line per line…"
         />
         <span className="field-hint">
-          Your words, in whatever script you write in. The group can then read them in
-          whichever scripts you pick below — the app changes the letters and nothing
-          else, never translates, and never fills in a song it thinks it recognises.
+          Enter lyrics in any script. Readers can view them in the scripts you select
+          below. Only the letters change, not the meaning.
         </span>
       </label>
 
