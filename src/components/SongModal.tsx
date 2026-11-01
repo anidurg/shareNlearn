@@ -32,7 +32,7 @@ import {
 } from "./AudioRecorder";
 import { initialAnswers, SongFields } from "./CategoryFields";
 import { SongConversation } from "./Discussions";
-import { ErrorLine, Modal, PhotoField, SharedInNote, SharingIntoNote, ShelfField, VisibilityPicker } from "./shared";
+import { ErrorLine, Modal, PhotoField, ShelfField, VisibilityPicker } from "./shared";
 import { LyricsField } from "./SongLyrics";
 
 /**
@@ -275,7 +275,7 @@ export function SongModal({
       readInto,
       visibility,
       circleIds,
-      folderIdsByCircle: Object.fromEntries(circleIds.map((id) => [id, folderIdsByCircle[id] ?? null])),
+      folderIdsByCircle: Object.fromEntries((visibility === "shared" ? circleIds : []).map((id) => [id, folderIdsByCircle[id] ?? null])),
       ...(asksShelf
         ? { subcategoryId: shelf.id, subcategoryName: shelf.name, filedCategoryId }
         : {}),
@@ -630,7 +630,9 @@ export function SongModal({
                   {folderErrors[id] && (
                     <button type="button" className="btn" onClick={() => {
                       setFolderErrors((prev) => { const next = { ...prev }; delete next[id]; return next; });
-                      store.loadCircleFolders(id).catch(() =>
+                      store.loadCircleFolders(id).then(() =>
+                        setFolderErrors((prev) => { const next = { ...prev }; delete next[id]; return next; })
+                      ).catch(() =>
                         setFolderErrors((prev) => ({ ...prev, [id]: "Could not load folders. Please retry." }))
                       );
                     }}>Retry</button>
