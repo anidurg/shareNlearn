@@ -6422,9 +6422,9 @@ button.field-file-link {
 
 .song-lyrics-settings-title {
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .song-way .song-lyrics-settings .visibility-picker {
