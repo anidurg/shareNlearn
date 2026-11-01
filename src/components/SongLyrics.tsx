@@ -422,7 +422,8 @@ export function LyricsField({
         </span>
       </label>
 
-      <div className="song-lyrics-settings" style={{ border: "1px solid var(--border, #dce2ed)", borderRadius: "12px", padding: "12px", width: "100%", boxSizing: "border-box", textAlign: "left" }}>
+      <section className="song-lyrics-settings" aria-label="Transliteration">
+        <h3 className="song-lyrics-settings-title">Transliteration</h3>
       {lyrics.trim().length > 0 && (
         <label className="field" style={{ textAlign: "left", width: "100%" }}>
           <span>Language of the words (optional)</span>
@@ -467,7 +468,7 @@ export function LyricsField({
         chosen={readInto}
         onChange={onReadInto}
       />
-      </div>
+      </section>
     </>
   );
 }
@@ -527,7 +528,7 @@ function LyricScriptField({
 
   return (
     <fieldset className="field visibility-picker">
-      <legend>Should the words be readable in other scripts?</legend>
+      <legend>Transliteration to other scripts</legend>
       <label>
         <input
           type="radio"
