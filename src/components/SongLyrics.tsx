@@ -408,6 +408,7 @@ export function LyricsField({
     <>
       <label className="field">
         <span>Lyrics</span>
+        <span className="field-hint">You can share lyrics without adding audio.</span>
         <textarea
           rows={5}
           value={lyrics}
