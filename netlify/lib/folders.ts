@@ -479,7 +479,7 @@ export async function songFolderChoicesFrom(
     if (!Number.isInteger(circleId) || !selectedCircles.includes(circleId)) {
       return Response.json({ error: "A folder was selected for a different circle." }, { status: 400 });
     }
-    if (value !== null && (!Number.isInteger(value) || (value as number) <= 0)) {
+    if (value !== null && (typeof value !== "number" || !Number.isInteger(value) || value <= 0)) {
       return Response.json({ error: "Invalid folder selection." }, { status: 400 });
     }
     const folderId = value as number | null;
