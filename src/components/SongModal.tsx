@@ -498,7 +498,6 @@ export function SongModal({
             setReadInto(next);
           }}
         />
-        <p className="field-hint">You can share lyrics without adding audio.</p>
         </fieldset>
         <label className="field">
           <span>Composer (optional)</span>
