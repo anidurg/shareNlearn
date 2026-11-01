@@ -407,7 +407,7 @@ export function LyricsField({
   return (
     <>
       <label className="field">
-        <span>Lyrics (optional)</span>
+        <span>Lyrics</span>
         <textarea
           rows={5}
           value={lyrics}
