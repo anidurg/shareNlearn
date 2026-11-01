@@ -406,7 +406,7 @@ export function LyricsField({
 
   return (
     <>
-      <label className="field">
+      <label className="field" style={{ textAlign: "left", width: "100%" }}>
         <span>Lyrics</span>
         <span className="field-hint">You can share lyrics without adding audio.</span>
         <textarea
@@ -422,8 +422,9 @@ export function LyricsField({
         </span>
       </label>
 
+      <div className="song-lyrics-settings" style={{ border: "1px solid var(--border, #dce2ed)", borderRadius: "12px", padding: "12px", width: "100%", boxSizing: "border-box", textAlign: "left" }}>
       {lyrics.trim().length > 0 && (
-        <label className="field">
+        <label className="field" style={{ textAlign: "left", width: "100%" }}>
           <span>Language of the words (optional)</span>
           <input
             value={language}
@@ -434,7 +435,7 @@ export function LyricsField({
       )}
 
       {romanised && (
-        <label className="field">
+        <label className="field" style={{ textAlign: "left", width: "100%" }}>
           <span>You have typed in English letters — which way?</span>
           <select
             value={scheme}
@@ -466,6 +467,7 @@ export function LyricsField({
         chosen={readInto}
         onChange={onReadInto}
       />
+      </div>
     </>
   );
 }
