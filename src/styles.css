@@ -6403,6 +6403,42 @@ button.field-file-link {
   text-align: left;
 }
 
+.song-way .song-audio-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.song-way .song-lyrics-settings {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.song-lyrics-settings-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.song-way .song-lyrics-settings .visibility-picker {
+  min-width: 0;
+  margin: 0;
+}
+
+.song-way .song-lyrics-settings .visibility-picker legend {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
 /*
  * What is on the song already, shown at the top of the same question when the form
  * is editing one: the take itself, so it can be heard before it is replaced, and the
