@@ -2439,6 +2439,7 @@ export async function fetchSongs(): Promise<Song[]> {
  * recording is swept up. Saying nothing about it keeps whatever is already there.
  */
 export type SharedSong = Omit<Shared<Song>, "fieldValues"> & {
+  folderIdsByCircle?: Record<number, number | null>;
   fieldValues?: Record<number, string>;
   audio?: SongAudio | null;
 };
@@ -2853,6 +2854,7 @@ export function notAudioReason(file: File): string | null {
 }
 
 export interface UploadDetails {
+  folderIdsByCircle?: Record<number, number | null>;
   file: Blob;
   fileName?: string;
   songName: string;
@@ -2989,6 +2991,7 @@ export async function uploadSongInParts(
       subcategoryName: details.subcategoryName ?? null,
       filedCategoryId: details.filedCategoryId ?? null,
       ...(details.folderId === undefined ? {} : { folderId: details.folderId }),
+      ...(details.folderIdsByCircle === undefined ? {} : { folderIdsByCircle: details.folderIdsByCircle }),
       photos: details.photos ?? [],
       fieldValues: details.fieldValues ?? {},
       parts: audio.parts,
