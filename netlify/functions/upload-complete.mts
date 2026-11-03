@@ -16,7 +16,7 @@ import {
   normalizeContentType,
   stitchParts,
 } from "../lib/audio-uploads.js";
-import { folderIdFrom } from "../lib/folders.js";
+import { folderIdFrom, songFolderChoicesFrom, applySongFolderChoices } from "../lib/folders.js";
 import { photoKeysFrom, setItemPhotos } from "../lib/photos.js";
 import {
   answersFrom,
@@ -57,6 +57,9 @@ export default async (req: Request, context: Context) => {
   } catch {
     return Response.json({ error: "Expected a JSON body." }, { status: 400 });
   }
+
+  const folderChoices = await songFolderChoicesFrom(body, circleIdsFrom(body) ?? []);
+  if (folderChoices instanceof Response) return folderChoices;
 
   const songName = String(body.songName ?? "").trim();
   const composer = String(body.composer ?? "").trim() || null;
@@ -137,6 +140,8 @@ export default async (req: Request, context: Context) => {
           folderIdFrom(body),
         )
       : [];
+
+  await applySongFolderChoices(song.id, chosen.map((circle) => circle.id), folderChoices);
 
   // A recording may carry photos too — sheet music, the group that sang it.
   const photos = await setItemPhotos("song", song.id, photoKeysFrom(body) ?? [], user);

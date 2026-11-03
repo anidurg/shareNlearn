@@ -24,7 +24,7 @@ import {
   setItemFieldValues,
   withFieldValues,
 } from "../lib/fields.js";
-import { folderIdFrom } from "../lib/folders.js";
+import { folderIdFrom, songFolderChoicesFrom, applySongFolderChoices } from "../lib/folders.js";
 import {
   badRequest,
   jsonBody,
@@ -90,6 +90,9 @@ export default async (req: Request) => {
 
   const body = await jsonBody(req);
   if (!body) return badRequest("Expected a JSON body.");
+
+  const folderChoices = await songFolderChoicesFrom(body, circleIdsFrom(body) ?? []);
+  if (folderChoices instanceof Response) return folderChoices;
 
   const songName = text(body.songName);
   if (!songName) return badRequest("A song needs a title.");
@@ -157,6 +160,8 @@ export default async (req: Request) => {
           folderIdFrom(body),
         )
       : [];
+
+  await applySongFolderChoices(song.id, chosen.map((circle) => circle.id), folderChoices);
 
   const photos = await setItemPhotos("song", song.id, photoKeysFrom(body) ?? [], user);
   const fieldValues = await setItemFieldValues("song", song.id, fields, answers, user.id);

@@ -6371,6 +6371,74 @@ button.field-file-link {
   margin: 0;
 }
 
+/* The Content fieldset used to contain only radio choices. Lyrics now lives
+   inside it, so its fields must retain their full-width, left-aligned layout. */
+.song-way label.field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+  font-size: 0.8rem;
+  gap: 0.4rem;
+}
+
+.song-way label.field > span,
+.song-way label.field > .field-hint {
+  display: block;
+  text-align: left;
+}
+
+.song-way label.field textarea,
+.song-way label.field input,
+.song-way label.field select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.song-way .song-lyrics-settings {
+  min-width: 0;
+  text-align: left;
+}
+
+.song-way .song-audio-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.song-way .song-lyrics-settings {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.song-lyrics-settings-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.song-way .song-lyrics-settings .visibility-picker {
+  min-width: 0;
+  margin: 0;
+}
+
+.song-way .song-lyrics-settings .visibility-picker legend {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
 /*
  * What is on the song already, shown at the top of the same question when the form
  * is editing one: the take itself, so it can be heard before it is replaced, and the

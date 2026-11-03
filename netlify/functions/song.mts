@@ -25,7 +25,7 @@ import {
   missingRequired,
   tooMuchUploaded,
 } from "../lib/fields.js";
-import { folderIdFrom } from "../lib/folders.js";
+import { folderIdFrom, songFolderChoicesFrom, applySongFolderChoices } from "../lib/folders.js";
 import {
   badRequest,
   idFrom,
@@ -72,6 +72,9 @@ export default async (req: Request, context: Context) => {
   if (req.method === "PATCH") {
     const body = await jsonBody(req);
     if (!body) return badRequest("Expected a JSON body.");
+
+    const folderChoices = await songFolderChoicesFrom(body, circleIdsFrom(body) ?? (await filingsOf("song", id, user)).map((row) => row.circleId));
+    if (folderChoices instanceof Response) return folderChoices;
 
     const songName = text(body.songName ?? existing.songName);
     if (!songName) return badRequest("A song needs a title.");
@@ -197,6 +200,8 @@ export default async (req: Request, context: Context) => {
       filedCategoryIdFrom(body),
       folderIdFrom(body),
     );
+
+    await applySongFolderChoices(id, circleIds, folderChoices);
 
     // An edit that says nothing about photos leaves the ones already there.
     const photos = await applyItemPhotos("song", id, photoKeysFrom(body), user);

@@ -21,7 +21,7 @@ import {
   type Visibility,
 } from "../api";
 import { currentFiledCategoryId, currentShelfChoice } from "../categories";
-import { currentFolderPath, type ShareTarget } from "../folders";
+import { currentFolderPath, visibleFolders, type ShareTarget } from "../folders";
 import type { SharePrefill } from "../incoming-share";
 import type { ShareAndLearn } from "../store";
 import {
@@ -32,7 +32,7 @@ import {
 } from "./AudioRecorder";
 import { initialAnswers, SongFields } from "./CategoryFields";
 import { SongConversation } from "./Discussions";
-import { ErrorLine, Modal, PhotoField, SharedInNote, SharingIntoNote, ShelfField, VisibilityPicker } from "./shared";
+import { ErrorLine, Modal, PhotoField, ShelfField, VisibilityPicker } from "./shared";
 import { LyricsField } from "./SongLyrics";
 
 /**
@@ -114,7 +114,7 @@ export function SongModal({
   // that came out badly. On a new share the default is to sing it, unless this
   // browser cannot — in which case starting on a disabled choice would only look
   // broken.
-  const [way, setWay] = useState<Way>(editing ? "keep" : canRecord ? "record" : "upload");
+  const [way, setWay] = useState<Way>("keep");
   const [songName, setSongName] = useState(song?.songName ?? prefill?.title ?? "");
   const [composer, setComposer] = useState(song?.composer ?? "");
   const [raga, setRaga] = useState(song?.raga ?? "");
@@ -143,6 +143,28 @@ export function SongModal({
   const seeded = useRef(Boolean(song) || (store.songScripts?.scripts.length ?? 0) > 0);
   const [visibility, setVisibility] = useState<Visibility>(song?.visibility ?? "shared");
   const [circleIds, setCircleIds] = useState<number[]>(song?.circleIds ?? presetCircleIds);
+  const [folderIdsByCircle, setFolderIdsByCircle] = useState<Record<number, number | null>>(() => {
+    const saved: Record<number, number | null> = {};
+    for (const filing of song?.filings ?? []) saved[filing.circleId] = filing.folderId;
+    if (!song && folder?.id != null && presetCircleIds.length === 1) {
+      saved[presetCircleIds[0]] = folder.id;
+    }
+    return saved;
+  });
+  const folderLoads = useRef(new Set<number>());
+  const [folderErrors, setFolderErrors] = useState<Record<number, string>>({});
+  useEffect(() => {
+    if (visibility === "private") return;
+    for (const id of circleIds) {
+      if (store.circleFolders[id] || folderLoads.current.has(id)) continue;
+      folderLoads.current.add(id);
+      store.loadCircleFolders(id).catch(() => {
+        setFolderErrors((prev) => ({ ...prev, [id]: "Could not load folders. Please retry." }));
+        folderLoads.current.delete(id);
+      });
+    }
+  }, [circleIds.join(","), visibility, store.circleFolders]);
+
   const [shelf, setShelf] = useState<ShelfChoice>(currentShelfChoice(categories, song));
   const [filedCategoryId, setFiledCategoryId] = useState<number | null>(
     currentFiledCategoryId(song),
@@ -253,6 +275,7 @@ export function SongModal({
       readInto,
       visibility,
       circleIds,
+      folderIdsByCircle: Object.fromEntries((visibility === "shared" ? circleIds : []).map((id) => [id, folderIdsByCircle[id] ?? null])),
       ...(asksShelf
         ? { subcategoryId: shelf.id, subcategoryName: shelf.name, filedCategoryId }
         : {}),
@@ -276,8 +299,8 @@ export function SongModal({
     // so: every field on this form is on it either way. On an edit, "keep" is the
     // radio that means "no new bytes", and the song keeps whatever it already had.
     const audio = way === "record" ? recording : way === "upload" ? file : null;
-    if (!editing && !audio && !lyrics.trim()) {
-      setError("Record something, choose a file, or type the words.");
+    if (!audio && !lyrics.trim() && !(editing && song?.blobKey && way === "keep")) {
+      setError("Add a recording or enter lyrics before sharing.");
       return;
     }
     if (editing && way !== "keep" && !audio) {
@@ -372,30 +395,21 @@ export function SongModal({
       busy={busy}
     >
       <form className="auth-form" onSubmit={handleSubmit}>
-        {/* Where it goes, first, the same way it is asked first on every other
-            share form — except that a form opened from inside a folder has
-            already been told, and an edit of something already in one is being
-            shown where it is rather than asked all over again. */}
-        {folder ? (
-          <SharingIntoNote path={folder.path} />
-        ) : filedIn ? (
-          <SharedInNote path={filedIn} />
-        ) : (
-          <ShelfField
-            itemType="song"
-            categories={categories}
-            circles={circles}
-            circleIds={circleIds}
-            value={shelf}
-            onChange={setShelf}
-            filedCategoryId={filedCategoryId}
-            onFiledCategoryIdChange={setFiledCategoryId}
-          />
+        {!editing && (
+          <p className="field-hint">
+            A Song can be a poem or any text, including dEvaranAma, shloka, stotra, sukta, and more.
+          </p>
         )}
+        <label className="field">
+          <span>Song title</span>
+          <input required value={songName} onChange={(e) => setSongName(e.target.value)}
+            disabled={busy} autoFocus />
+        </label>
 
         <fieldset className="field song-way">
-          <legend>{editing ? "How did you share it?" : "How are you sharing it?"}</legend>
-
+          <legend>Content</legend>
+          <p className="field-hint">Add audio, lyrics, or both. At least one is required.</p>
+          <span className="field-label">Audio</span>
           {/* What is on the song now, so the member can hear it before deciding to
               replace it — and reach the file itself, which is the only link there is
               to a recording. A song shared as words alone says so instead. */}
@@ -432,58 +446,24 @@ export function SongModal({
             </div>
           )}
 
-          {editing && (
-            <label>
-              <input
-                type="radio"
-                checked={way === "keep"}
-                onChange={() => setWay("keep")}
-                disabled={busy}
-              />
-              <span>{song?.blobKey ? "Keep this recording" : "Leave it as words alone"}</span>
-            </label>
-          )}
-          <label>
-            <input
-              type="radio"
-              checked={way === "record"}
-              onChange={() => setWay("record")}
-              disabled={busy || !canRecord}
-            />
-            <span>
-              {editing ? (song?.blobKey ? "Record it again" : "Record it now") : "Record it now"}
-              {!canRecord && <span className="field-hint"> — this browser cannot record</span>}
-            </span>
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={way === "upload"}
-              onChange={() => setWay("upload")}
-              disabled={busy}
-            />
-            <span>
-              {editing && song?.blobKey ? "Upload a different recording" : "Upload a recording"}
-            </span>
-          </label>
-          <span className="field-hint">
-            {editing
-              ? "A new take replaces the one above; everything else about the song stays as it is."
-              : "Both are optional — type the words below and share the song without a recording at all."}
-          </span>
-        </fieldset>
 
-        <label className="field">
-          <span>Song title</span>
-          <input
-            required
-            value={songName}
-            onChange={(e) => setSongName(e.target.value)}
-            disabled={busy}
-            autoFocus
-          />
-        </label>
-
+          <div className="song-audio-choices">
+            {editing && (
+              <button type="button" className={way === "keep" ? "btn btn-primary" : "btn"}
+                onClick={() => setWay("keep")} disabled={busy}>
+                {song?.blobKey ? "Keep recording" : "No recording"}
+              </button>
+            )}
+            <button type="button" className={way === "record" ? "btn btn-primary" : "btn"}
+              onClick={() => setWay("record")} disabled={busy || !canRecord}>
+              Record
+            </button>
+            <button type="button" className={way === "upload" ? "btn btn-primary" : "btn"}
+              onClick={() => setWay("upload")} disabled={busy}>
+              Upload
+            </button>
+          </div>
+          {!canRecord && <p className="field-hint">Recording is not supported in this browser; you can upload audio instead.</p>}
         {way === "record" && canRecord && <AudioRecorder recorder={recorder} disabled={busy} />}
 
         {way === "upload" && (
@@ -526,15 +506,6 @@ export function SongModal({
           </>
         )}
 
-        <label className="field">
-          <span>Composer (optional)</span>
-          <input value={composer} onChange={(e) => setComposer(e.target.value)} disabled={busy} />
-        </label>
-
-        <label className="field">
-          <span>Raga or style (optional)</span>
-          <input value={raga} onChange={(e) => setRaga(e.target.value)} disabled={busy} />
-        </label>
 
         <LyricsField
           lyrics={lyrics}
@@ -550,30 +521,20 @@ export function SongModal({
             setReadInto(next);
           }}
         />
+        </fieldset>
+        <label className="field">
+          <span>Composer (optional)</span>
+          <input value={composer} onChange={(e) => setComposer(e.target.value)} disabled={busy} />
+        </label>
 
-        {/* Whatever the chosen circles decided a song here should also say, and the
-            "+" that adds a question — which belongs to the people who answer for the
-            circle, so a plain member sees the questions and no button. */}
-        <SongFields
-          store={store}
-          categories={categories}
-          circleIds={circleIds}
-          values={answers}
-          onChange={setAnswers}
-          attachment={prefill?.attachment}
-        />
+        <label className="field">
+          <span>Raga or style (optional)</span>
+          <input value={raga} onChange={(e) => setRaga(e.target.value)} disabled={busy} />
+        </label>
 
-        <VisibilityPicker
-          value={visibility}
-          onChange={setVisibility}
-          circles={circles}
-          circleIds={circleIds}
-          onCircleIdsChange={setCircleIds}
-          itemType="song"
-          categories={categories}
-          onShelfChange={setShelf}
-        />
 
+        <details className="field">
+          <summary>Additional details</summary>
         <PhotoField
           photos={photos}
           onChange={setPhotos}
@@ -611,6 +572,89 @@ export function SongModal({
           </label>
         )}
 
+
+        {/* Whatever the chosen circles decided a song here should also say, and the
+            "+" that adds a question — which belongs to the people who answer for the
+            circle, so a plain member sees the questions and no button. */}
+        <SongFields
+          store={store}
+          categories={categories}
+          circleIds={circleIds}
+          values={answers}
+          onChange={setAnswers}
+          attachment={prefill?.attachment}
+        />
+
+
+        </details>
+        <div className="field">
+          <span className="field-label">Share with</span>
+        <VisibilityPicker
+          value={visibility}
+          onChange={setVisibility}
+          circles={circles}
+          circleIds={circleIds}
+          onCircleIdsChange={setCircleIds}
+          itemType="song"
+          categories={categories}
+          onShelfChange={setShelf}
+        />
+
+
+        {visibility === "shared" && circleIds.length > 0 && (
+          <div className="song-circle-folders">
+            <span className="field-label">Folders</span>
+            <p className="field-hint">Choose a folder within each Circle, or share at the Circle level.</p>
+            {circleIds.map((id) => {
+              const circle = circles.find((entry) => entry.id === id);
+              const list = store.circleFolders[id];
+              const chosen = folderIdsByCircle[id] ?? null;
+              return (
+                <label className="field song-circle-folder" key={id}>
+                  <span>{circle?.name ?? "Circle"}</span>
+                  <select
+                    value={chosen ?? ""}
+                    disabled={busy || !list}
+                    onChange={(event) => setFolderIdsByCircle((prev) => ({
+                      ...prev, [id]: event.target.value ? Number(event.target.value) : null,
+                    }))}
+                  >
+                    <option value="">No folder — share in Circle</option>
+                    {list && visibleFolders(list).map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.path.join(" › ")}
+                      </option>
+                    ))}
+                  </select>
+                  {!list && <span className="field-hint">{folderErrors[id] ?? "Loading folders…"}</span>}
+                  {folderErrors[id] && (
+                    <button type="button" className="btn" onClick={() => {
+                      setFolderErrors((prev) => { const next = { ...prev }; delete next[id]; return next; });
+                      store.loadCircleFolders(id).then(() =>
+                        setFolderErrors((prev) => { const next = { ...prev }; delete next[id]; return next; })
+                      ).catch(() =>
+                        setFolderErrors((prev) => ({ ...prev, [id]: "Could not load folders. Please retry." }))
+                      );
+                    }}>Retry</button>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        )}
+        {asksShelf && (
+          <ShelfField
+            itemType="song"
+            categories={categories}
+            circles={circles}
+            circleIds={circleIds}
+            value={shelf}
+            onChange={setShelf}
+            filedCategoryId={filedCategoryId}
+            onFiledCategoryIdChange={setFiledCategoryId}
+          />
+        )}
+        </div>
         <ErrorLine message={error} />
 
         {uploading && (
