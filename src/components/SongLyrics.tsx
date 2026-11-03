@@ -90,11 +90,7 @@ export function SongLyrics({
       >
         <span aria-hidden="true">{open ? "▾" : "▸"}</span>
         <span className="details-toggle-label">Details</span>
-        <span className="details-toggle-note">
-          {offered.length > 0
-            ? `the words, and ${offered.length === 1 ? "1 script" : `${offered.length} scripts`} to read them in`
-            : "the words"}
-        </span>
+
       </button>
 
       {open && (
