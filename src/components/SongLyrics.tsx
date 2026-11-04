@@ -66,15 +66,8 @@ export function SongLyrics({
 }) {
   const [open, setOpen] = useState(false);
 
-  if (!song.lyrics) {
-    if (!canEdit) return null;
-    return (
-      <p className="lyrics-nudge">
-        No words typed for this one. Add them under Edit and the group can read them in
-        Kannada, Devanagari, Tamil or any other script you pick.
-      </p>
-    );
-  }
+  // Audio-only songs are complete as they are; lyrics remain optional under Edit.
+  if (!song.lyrics) return null;
 
   const offered = offeredScripts(song);
 
@@ -120,18 +113,7 @@ export function SongLyricsPanel({
   store: ShareAndLearn;
   canEdit: boolean;
 }) {
-  if (!song.lyrics) {
-    if (!canEdit) return null;
-    return (
-      <section className="lyrics-panel">
-        <h2 className="section-title">Lyrics</h2>
-        <p className="lyrics-nudge">
-          No words typed for this one. Add them under Edit and the group can read them in
-          Kannada, Devanagari, Tamil or any other script you pick.
-        </p>
-      </section>
-    );
-  }
+  if (!song.lyrics) return null;
 
   return (
     <section className="lyrics-panel">
