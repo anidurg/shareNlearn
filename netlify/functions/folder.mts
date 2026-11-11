@@ -1,9 +1,9 @@
 // netlify/functions/folder.mts
 import type { Config, Context } from "@netlify/functions";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { admittedAccess } from "../lib/access.js";
 import { db } from "../../db/index.js";
-import { circles, folders } from "../../db/schema.js";
+import { circles, folders, folderShares } from "../../db/schema.js";
 import { circleIdFrom } from "../lib/circles.js";
 import {
   circleFolderList,
@@ -78,6 +78,20 @@ export default async (req: Request, context: Context) => {
         return badRequest("That folder sits inside this one, so it cannot be the merge target.");
       }
 
+  // A shared source folder cannot be deleted or merged away until its
+  // active references have been revoked. Descendant source folders count too.
+  const protectedIds = subtreeIds(await foldersOf(circleId), folder.id);
+  const activeReferences = await db.select({ id: folderShares.id }).from(folderShares).where(and(
+    inArray(folderShares.sourceFolderId, protectedIds),
+    eq(folderShares.status, "active"),
+  ));
+  if (activeReferences.length) {
+    return Response.json({
+      error: "Revoke active folder sharing before deleting or merging this folder.",
+      activeShares: activeReferences.length,
+    }, { status: 409 });
+  }
+
       await mergeFolder(folder, target);
 
       return Response.json({
@@ -143,6 +157,20 @@ export default async (req: Request, context: Context) => {
   // circle is no folder at all, so the shares land back in the circle itself —
   // and promotes its subfolders to the same place, so nothing is cut off and
   // nothing anybody shared goes anywhere.
+  // A shared source folder cannot be deleted or merged away until its
+  // active references have been revoked. Descendant source folders count too.
+  const protectedIds = subtreeIds(await foldersOf(circleId), folder.id);
+  const activeReferences = await db.select({ id: folderShares.id }).from(folderShares).where(and(
+    inArray(folderShares.sourceFolderId, protectedIds),
+    eq(folderShares.status, "active"),
+  ));
+  if (activeReferences.length) {
+    return Response.json({
+      error: "Revoke active folder sharing before deleting or merging this folder.",
+      activeShares: activeReferences.length,
+    }, { status: 409 });
+  }
+
   await deleteFolder(folder);
 
   return Response.json({ ok: true, folders: await circleFolderList(circleId, user, true) });
