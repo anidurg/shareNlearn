@@ -1408,3 +1408,64 @@ export const memberUsage = pgTable(
   },
   (table) => [uniqueIndex("member_usage_member_day_idx").on(table.memberId, table.day)],
 );
+
+
+/**
+ * An approved cross-Circle folder reference. The original folder is never copied:
+ * sourceFolderId always points at the authoritative folder in sourceCircleId.
+ * Each destination Circle has its own independently revocable arrangement.
+ *
+ * Status: pending | active | rejected | cancelled | revoked.
+ * Permission: view | contribute. A new request defaults to view.
+ * Only the source admin can offer a folder; the destination admin accepts it
+ * and chooses its local placement. No access is granted while pending.
+ */
+export const folderShares = pgTable(
+  "folder_shares",
+  {
+    id: serial().primaryKey(),
+    sourceFolderId: integer("source_folder_id").notNull(),
+    sourceCircleId: integer("source_circle_id").notNull(),
+    destinationCircleId: integer("destination_circle_id").notNull(),
+    destinationParentFolderId: integer("destination_parent_folder_id"),
+    destinationName: text("destination_name"),
+    permission: text().notNull().default("view"),
+    status: text().notNull().default("pending"),
+    requestedById: text("requested_by_id").notNull(),
+    sourceApprovedById: text("source_approved_by_id"),
+    destinationApprovedById: text("destination_approved_by_id"),
+    requestedAt: timestamp("requested_at").defaultNow().notNull(),
+    activatedAt: timestamp("activated_at"),
+    endedAt: timestamp("ended_at"),
+  },
+  (table) => [
+    // Historical rejected/revoked shares remain; only one current arrangement
+    // for a given original folder and destination may be pending or active.
+    uniqueIndex("folder_shares_current_pair_idx")
+      .on(table.sourceFolderId, table.destinationCircleId)
+      .where(sql`status in ('pending', 'active')`),
+  ],
+);
+
+/** Exclusions belong to one sharing arrangement, never to the source folder. */
+export const folderShareExclusions = pgTable(
+  "folder_share_exclusions",
+  {
+    id: serial().primaryKey(),
+    shareId: integer("share_id").notNull(),
+    folderId: integer("folder_id").notNull(),
+  },
+  (table) => [
+    uniqueIndex("folder_share_exclusions_pair_idx").on(table.shareId, table.folderId),
+  ],
+);
+
+/** Append-only audit trail for requests, decisions, changes and revocations. */
+export const folderShareEvents = pgTable("folder_share_events", {
+  id: serial().primaryKey(),
+  shareId: integer("share_id").notNull(),
+  actorId: text("actor_id").notNull(),
+  action: text().notNull(),
+  details: text(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
