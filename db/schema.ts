@@ -1430,6 +1430,7 @@ export const folderShares = pgTable(
     destinationParentFolderId: integer("destination_parent_folder_id"),
     destinationName: text("destination_name"),
     permission: text().notNull().default("view"),
+    pendingPermission: text("pending_permission"),
     status: text().notNull().default("pending"),
     requestedById: text("requested_by_id").notNull(),
     sourceApprovedById: text("source_approved_by_id"),
