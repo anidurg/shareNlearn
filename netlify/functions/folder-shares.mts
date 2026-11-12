@@ -1,7 +1,7 @@
 // Folder-sharing administration. Every mutation is checked against current
 // Circle admin membership; an approved reference never grants membership.
 import type { Config, Context } from "@netlify/functions";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { admittedAccess } from "../lib/access.js";
 import { db } from "../../db/index.js";
 import { circles, folderShares, folderShareEvents, folderShareExclusions } from "../../db/schema.js";
@@ -29,7 +29,10 @@ export default async (req: Request, context: Context) => {
     const shares = await db.select().from(folderShares).where(
       or(eq(folderShares.sourceCircleId, circleId), eq(folderShares.destinationCircleId, circleId)),
     );
-    return Response.json({ shares });
+    const ids = shares.map((share) => share.id);
+    const events = ids.length ? await db.select().from(folderShareEvents).where(inArray(folderShareEvents.shareId, ids)) : [];
+    const exclusions = ids.length ? await db.select().from(folderShareExclusions).where(inArray(folderShareExclusions.shareId, ids)) : [];
+    return Response.json({ shares, events, exclusions });
   }
 
   const body = await jsonBody(req);
@@ -111,12 +114,58 @@ export default async (req: Request, context: Context) => {
 
   if (action === "permission") {
     if (!sourceAdmin || share.status !== "active") return forbidden();
-    // Upgrades require a fresh destination approval; never silently elevate.
-    if (body.permission !== "view") return badRequest("Permission increases require a new approval workflow.");
-    const [updated] = await db.update(folderShares).set({ permission: "view" })
+    if (body.permission !== "view" && body.permission !== "contribute")
+      return badRequest("Choose View only or View and contribute.");
+    if (body.permission === "contribute") {
+      if (share.permission === "contribute") return conflict("Contributions are already allowed.");
+      if (share.pendingPermission) return conflict("A permission change is awaiting approval.");
+      const [updated] = await db.update(folderShares).set({ pendingPermission: "contribute" })
+        .where(and(eq(folderShares.id, shareId), eq(folderShares.status, "active"),
+          eq(folderShares.permission, "view"))).returning();
+      if (!updated) return conflict("Share has changed.");
+      await db.insert(folderShareEvents).values({ shareId, actorId: access.user.id, action: "permission_upgrade_requested" });
+      return Response.json({ share: updated });
+    }
+    const [updated] = await db.update(folderShares).set({ permission: "view", pendingPermission: null })
       .where(and(eq(folderShares.id, shareId), eq(folderShares.status, "active"))).returning();
     if (!updated) return conflict("Share has changed.");
     await db.insert(folderShareEvents).values({ shareId, actorId: access.user.id, action: "permission_reduced" });
+    return Response.json({ share: updated });
+  }
+
+  if (action === "approve_permission" || action === "reject_permission") {
+    if (!destinationAdmin || share.status !== "active" || share.pendingPermission !== "contribute")
+      return conflict("There is no contribution permission request to review.");
+    const approved = action === "approve_permission";
+    const [updated] = await db.update(folderShares).set({
+      permission: approved ? "contribute" : share.permission,
+      pendingPermission: null,
+    }).where(and(eq(folderShares.id, shareId), eq(folderShares.status, "active"),
+      eq(folderShares.pendingPermission, "contribute"))).returning();
+    if (!updated) return conflict("Permission request has changed.");
+    await db.insert(folderShareEvents).values({
+      shareId, actorId: access.user.id,
+      action: approved ? "permission_upgrade_approved" : "permission_upgrade_rejected",
+    });
+    return Response.json({ share: updated });
+  }
+
+  if (action === "placement") {
+    if (!destinationAdmin || share.status !== "active") return forbidden();
+    const parentId = body.parentId == null ? null : validId(body.parentId);
+    if (body.parentId != null && !parentId) return badRequest("Invalid destination folder.");
+    if (parentId && !(await folderById(circleId, parentId)))
+      return badRequest("Destination folder does not belong to this Circle.");
+    const name = body.name === undefined ? share.destinationName : String(body.name).trim();
+    if (name && (name.length > 60 || /[<>]/.test(name))) return badRequest("Invalid display name.");
+    const [updated] = await db.update(folderShares).set({
+      destinationParentFolderId: parentId, destinationName: name || null,
+    }).where(and(eq(folderShares.id, shareId), eq(folderShares.status, "active"))).returning();
+    if (!updated) return conflict("Share has changed.");
+    await db.insert(folderShareEvents).values({
+      shareId, actorId: access.user.id, action: "placement_changed",
+      details: JSON.stringify({ parentId, name: name || null }),
+    });
     return Response.json({ share: updated });
   }
 
