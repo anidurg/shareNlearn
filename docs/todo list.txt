@@ -1,0 +1,8 @@
+1. Add a bug/enhancement request button that users can use to file requests. App owner/Managers should be able to turn this off later for broader deployment. 
+2. Reconstruct the entire app to be a native Android and iphone App, essentially address the forward from whatsapp to iphone problem
+3. Add a legal agreement page that new users must Accept before using the App. 
+Include standard App agreement language
+Clarify that content shared by users becomes property of ShareNLearn to share with the selected circles, users enhancement
+ShareNLearn is not resposible for any direct or indirect losses 
+Currently, ShareNLearn bears all the costs of the App and storage but reserve right to charge for any features and services in the features
+Currenlty, ShareNLearn does not share any monetized revenue or profit from the users content and reserve right to share any declared profits with the content providers in the future, based on the policies that ShareNLearn defines.
