@@ -7206,3 +7206,15 @@ button.field-file-link {
   flex-shrink: 0;
   margin-top: 0.2rem;
 }
+
+/* Signed-out welcome: app features, not community content. */
+.visitor-welcome { max-width: 920px; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) 1rem; text-align: center; }
+.visitor-welcome h1 { font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.15; margin: 0 0 1rem; }
+.visitor-intro { max-width: 620px; margin: 0 auto; line-height: 1.6; }
+.visitor-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 2rem 0; }
+.visitor-feature { padding: 1.5rem 1rem; border: 1px solid #dbe3f0; border-radius: 1rem; background: #fff; color: #18243a; }
+.visitor-feature > span { display: block; font-size: 2rem; margin-bottom: .75rem; }
+.visitor-feature h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+.visitor-feature p { margin: 0; line-height: 1.5; color: #52617a; }
+.visitor-invitation { margin-top: 1.25rem; font-size: .9rem; }
+@media (max-width: 600px) { .visitor-features { grid-template-columns: 1fr; gap: .75rem; } .visitor-feature { padding: 1rem; } }
