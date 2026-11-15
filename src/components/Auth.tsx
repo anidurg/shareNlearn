@@ -209,9 +209,12 @@ export function AuthPanel({ onClose, initialMode = "welcome" }: AuthPanelProps) 
       setKeepSignedIn(keep);
       await oauthLogin(provider);
     } catch (err) {
-      console.error("OAuth sign-in could not start", provider, err instanceof Error ? err.name : "Unknown error");
+      // Some browser/Identity combinations initiate navigation before throwing.
+      // Give the redirect time to leave this page before announcing a failure.
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 2500));
+      console.warn("OAuth sign-in reported an exception", provider, err instanceof Error ? err.name : "Unknown error");
       setNotice(null);
-      setError(`Could not connect to ${label}. Try opening Share & Learn in Safari or Chrome, or continue with email.`);
+      setError(`If ${label} did not open, please try again or continue with email.`);
     } finally {
       setBusy(false);
     }
