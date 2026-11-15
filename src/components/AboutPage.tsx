@@ -45,16 +45,25 @@ const POINT_MARKS = ["👥", "🗂", "🎵", "💬", "🔖"];
  * word rather than carrying markup; if it is missing or no longer appears in
  * the headline, the headline is shown plain rather than broken.
  */
-function headline(text: string, emphasis: string | undefined): ReactNode {
-  const at = emphasis ? text.indexOf(emphasis) : -1;
-  if (!emphasis || at < 0) return text;
-  return (
-    <>
-      {text.slice(0, at)}
-      <em>{emphasis}</em>
-      {text.slice(at + emphasis.length)}
-    </>
-  );
+function headline(text: string, emphasis: string | string[] | undefined): ReactNode {
+  const words = (Array.isArray(emphasis) ? emphasis : emphasis ? [emphasis] : [])
+    .filter(Boolean);
+  if (words.length === 0) return text;
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    const next = words
+      .map((word) => ({ word, at: text.indexOf(word, cursor) }))
+      .filter((match) => match.at >= 0)
+      .sort((a, b) => a.at - b.at)[0];
+    if (!next) break;
+    if (next.at > cursor) parts.push(text.slice(cursor, next.at));
+    parts.push(<em key={next.at}>{next.word}</em>);
+    cursor = next.at + next.word.length;
+  }
+  if (parts.length === 0) return text;
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return <>{parts}</>;
 }
 
 /** A section's paragraphs, each set as a lede. */
@@ -105,7 +114,7 @@ export function AboutPage({ onNavigate }: { onNavigate: (tab: TabName) => void }
       </div>
 
       <ol className="about-flow" aria-label="The idea behind Share & Learn">
-        {about.flow.map((step) => (
+        {(about.flow as { word: string; line: string }[]).map((step) => (
           <li key={step.word} className="about-flow-step">
             <span className="about-flow-word">{step.word}</span>
             <span className="about-flow-line">{step.line}</span>

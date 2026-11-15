@@ -66,15 +66,8 @@ export function SongLyrics({
 }) {
   const [open, setOpen] = useState(false);
 
-  if (!song.lyrics) {
-    if (!canEdit) return null;
-    return (
-      <p className="lyrics-nudge">
-        No words typed for this one. Add them under Edit and the group can read them in
-        Kannada, Devanagari, Tamil or any other script you pick.
-      </p>
-    );
-  }
+  // Audio-only songs are complete as they are; lyrics remain optional under Edit.
+  if (!song.lyrics) return null;
 
   const offered = offeredScripts(song);
 
@@ -90,11 +83,7 @@ export function SongLyrics({
       >
         <span aria-hidden="true">{open ? "▾" : "▸"}</span>
         <span className="details-toggle-label">Details</span>
-        <span className="details-toggle-note">
-          {offered.length > 0
-            ? `the words, and ${offered.length === 1 ? "1 script" : `${offered.length} scripts`} to read them in`
-            : "the words"}
-        </span>
+
       </button>
 
       {open && (
@@ -124,18 +113,7 @@ export function SongLyricsPanel({
   store: ShareAndLearn;
   canEdit: boolean;
 }) {
-  if (!song.lyrics) {
-    if (!canEdit) return null;
-    return (
-      <section className="lyrics-panel">
-        <h2 className="section-title">Lyrics</h2>
-        <p className="lyrics-nudge">
-          No words typed for this one. Add them under Edit and the group can read them in
-          Kannada, Devanagari, Tamil or any other script you pick.
-        </p>
-      </section>
-    );
-  }
+  if (!song.lyrics) return null;
 
   return (
     <section className="lyrics-panel">
@@ -406,8 +384,9 @@ export function LyricsField({
 
   return (
     <>
-      <label className="field">
-        <span>Lyrics (optional)</span>
+      <label className="field" style={{ textAlign: "left", width: "100%" }}>
+        <span>Lyrics</span>
+        <span className="field-hint">You can share lyrics without adding audio.</span>
         <textarea
           rows={5}
           value={lyrics}
@@ -415,14 +394,15 @@ export function LyricsField({
           placeholder="Type the words as you know them, one line per line…"
         />
         <span className="field-hint">
-          Your words, in whatever script you write in. The group can then read them in
-          whichever scripts you pick below — the app changes the letters and nothing
-          else, never translates, and never fills in a song it thinks it recognises.
+          Enter lyrics in any script. Readers can view them in the scripts you select
+          below. Only the letters change, not the meaning.
         </span>
       </label>
 
+      <section className="song-lyrics-settings" aria-label="Transliteration">
+        <h3 className="song-lyrics-settings-title">Transliteration</h3>
       {lyrics.trim().length > 0 && (
-        <label className="field">
+        <label className="field" style={{ textAlign: "left", width: "100%" }}>
           <span>Language of the words (optional)</span>
           <input
             value={language}
@@ -433,8 +413,8 @@ export function LyricsField({
       )}
 
       {romanised && (
-        <label className="field">
-          <span>You have typed in English letters — which way?</span>
+        <label className="field" style={{ textAlign: "left", width: "100%" }}>
+          <span>Roman-letter format</span>
           <select
             value={scheme}
             onChange={(e) => {
@@ -450,10 +430,7 @@ export function LyricsField({
             ))}
           </select>
           <span className="field-hint">
-            Saying so is what lets the group read these words in another script, letter
-            for letter. Leave it and there is nothing to convert from — `aa`, `ā` and `A`
-            are three conventions' answer to the same vowel — so no script is offered on
-            this recording.
+            Select the format used to type these lyrics for accurate transliteration.
           </span>
         </label>
       )}
@@ -465,6 +442,7 @@ export function LyricsField({
         chosen={readInto}
         onChange={onReadInto}
       />
+      </section>
     </>
   );
 }
@@ -524,7 +502,7 @@ function LyricScriptField({
 
   return (
     <fieldset className="field visibility-picker">
-      <legend>Should the words be readable in other scripts?</legend>
+      <legend>Offer other scripts?</legend>
       <label>
         <input
           type="radio"
@@ -555,13 +533,6 @@ function LyricScriptField({
             emptyNote="None chosen yet — tick the scripts your family reads."
           />
 
-          <span className="field-hint">
-            Readers see a button for each one under the recording. Every one of them
-            changes the letters and nothing else — the same words, the same sounds, an
-            exact conversion by the Aksharamukha tables rather than anything written by
-            AI.
-          </span>
-
           {/* The one way ticking a script can come to nothing, said where the ticking
               happens rather than only beside the question that causes it. */}
           {needsScheme && chosen.length > 0 && (
@@ -573,24 +544,23 @@ function LyricScriptField({
           )}
 
           {chosen.length > 0 && (
-            <div className="lyrics-scripts">
-              <span className="lyrics-scripts-label">Check one</span>
-              {chosen.map((id) => {
-                const option = LYRIC_SCRIPT_OPTIONS.find((entry) => entry.id === id);
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    className={preview === id ? "count-chip count-chip-on" : "count-chip"}
-                    onClick={() => setPreview(preview === id ? null : id)}
-                    aria-pressed={preview === id}
-                    title={`Preview the words in ${option?.label ?? id}`}
-                  >
-                    {option?.native} {option?.label}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="field">
+              <span>Preview a script (optional)</span>
+              <select
+                value={preview ?? ""}
+                onChange={(event) => setPreview(event.target.value as LyricScript || null)}
+              >
+                <option value="">Choose a script to preview</option>
+                {chosen.map((id) => {
+                  const option = LYRIC_SCRIPT_OPTIONS.find((entry) => entry.id === id);
+                  return (
+                    <option key={id} value={id}>
+                      {option?.label ?? id}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
           )}
 
           {preview && <ScriptPreview words={words} scheme={scheme} script={preview} />}

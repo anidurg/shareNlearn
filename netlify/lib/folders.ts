@@ -30,6 +30,7 @@ import {
   cleanName,
   MAX_TREE_DEPTH,
   normalizeName,
+  nodeHidden,
   pathOf,
   reparentRefusal as reparentRefusalIn,
   similarNode,
@@ -457,4 +458,58 @@ export async function folderIdsOf(circleIds: number[]) {
     .from(folders)
     .where(inArray(folders.circleId, circleIds));
   return new Map(rows.map((row) => [row.id, row.circleId]));
+}
+
+/**
+ * Song forms may choose a different folder for each selected circle.
+ * An omitted map leaves legacy filing behavior intact; an explicit null means
+ * the song belongs at the top of that circle. Validate before writing the song.
+ */
+export async function songFolderChoicesFrom(
+  body: Record<string, unknown>,
+  selectedCircles: number[],
+): Promise<Map<number, number | null> | Response | undefined> {
+  if (!("folderIdsByCircle" in body)) return undefined;
+  const raw = body.folderIdsByCircle;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return Response.json({ error: "Invalid folder selections." }, { status: 400 });
+  }
+  const choices = new Map<number, number | null>();
+  for (const [key, value] of Object.entries(raw)) {
+    const circleId = Number(key);
+    if (!Number.isInteger(circleId) || !selectedCircles.includes(circleId)) {
+      return Response.json({ error: "A folder was selected for a different circle." }, { status: 400 });
+    }
+    if (value !== null && (typeof value !== "number" || !Number.isInteger(value) || value <= 0)) {
+      return Response.json({ error: "Invalid folder selection." }, { status: 400 });
+    }
+    const folderId = value as number | null;
+    if (folderId !== null) {
+      const tree = await foldersOf(circleId);
+      const folder = tree.find((row) => row.id === folderId);
+      if (!folder || nodeHidden(tree, folder)) {
+        return Response.json({ error: "That folder is not available in the selected circle." }, { status: 400 });
+      }
+    }
+    choices.set(circleId, folderId);
+  }
+  return choices;
+}
+
+/** Apply only the circle-specific folder answers actually supplied by a song form. */
+export async function applySongFolderChoices(
+  songId: number,
+  selectedCircles: number[],
+  choices: Map<number, number | null> | undefined,
+) {
+  if (!choices) return;
+  await Promise.all(
+    [...choices].filter(([circleId]) => selectedCircles.includes(circleId)).map(([circleId, folderId]) =>
+      db.update(itemCircles).set({ folderId }).where(and(
+        eq(itemCircles.itemType, "song"),
+        eq(itemCircles.itemId, songId),
+        eq(itemCircles.circleId, circleId),
+      )),
+    ),
+  );
 }

@@ -67,6 +67,8 @@ import {
   formatBytes,
   isAudioFileName,
   uploadFieldAudio,
+  uploadFieldVideo,
+  MAX_VIDEO_BYTES,
   uploadFieldFile,
   uploadItemPhoto,
   type FieldFileType,
@@ -116,9 +118,10 @@ function attachmentPlan(
   const fileType = fieldFileTypeOf(file);
   if (fileType) return { uploadKind: "document", fileType, ceiling: MAX_FIELD_FILE_BYTES };
   if (file.type.startsWith("video/")) {
-    return {
-      refusal: `${file.name} is a video, and nothing in Share & Learn takes one yet — an upload field asks for a document or a recording.`,
-    };
+    if (file.type !== "video/mp4" || !file.name.toLowerCase().endsWith(".mp4")) {
+      return { refusal: "Only MP4 videos are supported at present." };
+    }
+    return { uploadKind: "video", fileType: null, ceiling: MAX_VIDEO_BYTES };
   }
   if (file.type.startsWith("audio/") || isAudioFileName(file.name)) {
     return { uploadKind: "audio", fileType: null, ceiling: MAX_UPLOAD_BYTES };
@@ -337,7 +340,9 @@ export function IncomingShareScreen({
         const kept =
           plan.uploadKind === "audio"
             ? await uploadFieldAudio(incoming.file, { name: incoming.file.name })
-            : await uploadFieldFile(incoming.file, {
+            : plan.uploadKind === "video"
+              ? await uploadFieldVideo(incoming.file)
+              : await uploadFieldFile(incoming.file, {
                 types: plan.fileType ? [plan.fileType] : undefined,
               });
         setAttachment({ file: kept, uploadKind: plan.uploadKind, fileType: plan.fileType });

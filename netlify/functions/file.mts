@@ -1,4 +1,10 @@
 import type { Config, Context } from "@netlify/functions";
+import { and, eq, like } from "drizzle-orm";
+import { db } from "../../db/index.js";
+import { postFieldValues, posts, savedItems } from "../../db/schema.js";
+import { admittedAccess } from "../lib/access.js";
+import { ITEM_TABLES, isItemType, visibleTo, savedVisibleTo } from "../lib/items.js";
+import { parseAttachments } from "../lib/attachments.js";
 import { attachmentDisposition, attachmentStore, isAttachmentKey } from "../lib/attachments.js";
 import { bytesResponse, servedByteCount } from "../lib/ranges.js";
 import { recordServed, uploaderOf } from "../lib/usage.js";
@@ -35,13 +41,56 @@ export default async (req: Request, context: Context) => {
   const key = context.params.key ? decodeURIComponent(context.params.key) : "";
   if (!isAttachmentKey(key)) return new Response("Invalid file key", { status: 400 });
 
+  const access = await admittedAccess();
+  if (!access) return new Response("Unauthorized", { status: 401 });
+
+  // The uploader can preview a file before saving the form. Everyone else
+  // must be able to read a share that actually references this exact blob key.
+  {
+    const references = await db.select({
+      itemType: postFieldValues.itemType,
+      itemId: postFieldValues.itemId,
+      postId: postFieldValues.postId,
+      value: postFieldValues.value,
+    }).from(postFieldValues).where(like(postFieldValues.value, `%${key}%`));
+    let allowed = false;
+    for (const ref of references) {
+      if (!parseAttachments(ref.value).some((file) => file.key === key)) continue;
+      if (!isItemType(ref.itemType)) continue;
+      const id = ref.itemId ?? (ref.itemType === "post" ? ref.postId : null);
+      if (id === null) continue;
+      const table = ITEM_TABLES[ref.itemType];
+      const [visible] = await db.select({ id: table.id })
+        .from(table as typeof posts)
+        .where(and(eq(table.id, id), visibleTo(table, access.user, ref.itemType)))
+        .limit(1);
+      if (visible) { allowed = true; break; }
+      // Saving a share in one's library keeps access after leaving its Circle.
+      const [saved] = await db.select({ id: savedItems.id }).from(savedItems)
+        .where(and(eq(savedItems.memberId, access.user.id),
+          eq(savedItems.itemType, ref.itemType), eq(savedItems.itemId, id)))
+        .limit(1);
+      if (!saved) continue;
+      const [readableSaved] = await db.select({ id: table.id })
+        .from(table as typeof posts)
+        .where(and(eq(table.id, id), savedVisibleTo(table, access.user, ref.itemType)))
+        .limit(1);
+      if (readableSaved) { allowed = true; break; }
+    }
+    // A newly uploaded file has no answer row yet; its uploader may preview it.
+    // Once attached to a share, the share permissions always take precedence.
+    if (!allowed && !(references.length === 0 && key.startsWith(`${access.user.id}_`))) {
+      return new Response("File not found", { status: 404 });
+    }
+  }
+
   const result = await attachmentStore().getWithMetadata(key, { type: "arrayBuffer" });
   if (!result) return new Response("File not found", { status: 404 });
 
   const bytes = new Uint8Array(result.data as ArrayBuffer);
   const contentType =
     (result.metadata?.contentType as string | undefined) || "application/octet-stream";
-  const inline = contentType === "application/pdf" || contentType.startsWith("audio/");
+  const inline = contentType === "application/pdf" || contentType.startsWith("audio/") || contentType === "video/mp4";
 
   const range = req.headers.get("range");
   await recordServed(uploaderOf(key), servedByteCount(bytes, range));
@@ -51,7 +100,7 @@ export default async (req: Request, context: Context) => {
     "X-Content-Type-Options": "nosniff",
     // A file is never edited in place — a new one gets a new key — so this can
     // be cached hard.
-    "Cache-Control": "public, max-age=31536000, immutable",
+    "Cache-Control": "private, no-store",
   });
 };
 

@@ -1,0 +1,28 @@
+name: Verify video attachment preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "netlify/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/video-preview-check.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Vite build
+        run: npm run build
