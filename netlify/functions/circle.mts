@@ -62,7 +62,7 @@ export default async (req: Request, context: Context) => {
      * be let in.
      */
     if (!user) {
-      if (!circle.isDefault) return notFound("Circle");
+      if (!circle.isDefault || circle.privacy !== "public") return notFound("Circle");
       const categories = await circleCategoryList(id, null);
       return Response.json({
         circle: circleResponse(circle, { role: null, parent: await parentOf(circle) }),
@@ -195,11 +195,7 @@ export default async (req: Request, context: Context) => {
         description,
         icon: "icon" in body ? iconOf(body.icon) : circle.icon,
         coverKey,
-        // Discover keeps its door open whatever else is changed about it: every
-        // account is joined to it and it is where a member with no circle of
-        // their own lands, so a private Discover would shut the app's front door.
-        privacy:
-          "privacy" in body && !circle.isDefault ? privacyOf(body.privacy) : circle.privacy,
+        privacy: "privacy" in body ? privacyOf(body.privacy) : circle.privacy,
         // Whether a plain member may add to the circle's taxonomy while posting.
         // A form that never asked leaves it alone.
         memberTaxonomy: memberTaxonomyFrom(body) ?? circle.memberTaxonomy,
