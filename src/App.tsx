@@ -362,6 +362,7 @@ export default function App() {
     gate === "circle-first" &&
     route.tab !== "circles" &&
     route.tab !== "profile" &&
+    route.tab !== "library" &&
     route.tab !== "about";
 
   /** Songs, recipes and remedies each open one item at `#/<tab>/<id>`. */
