@@ -14,7 +14,6 @@ import { getUser, type User } from "@netlify/identity";
 import { count, eq, isNotNull, type InferSelectModel } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { circleMembers, circles, members } from "../../db/schema.js";
-import { ensureCommunityMembership } from "./community.js";
 import { memberNameOf, unauthorized } from "./items.js";
 
 export type MemberRow = InferSelectModel<typeof members>;
@@ -117,7 +116,6 @@ export async function accessOf(user: User): Promise<Access> {
 
   const member = row ?? null;
   const circleCount = joined.length;
-  const inCommunity = joined.some((entry) => entry.isDefault);
   // A circle somebody actually let them into, which Discover is not: everybody is
   // put in that one automatically, so counting it would make "in a circle" true
   // for every account from its first request and mean nothing.
@@ -133,25 +131,7 @@ export async function accessOf(user: User): Promise<Access> {
   const founding = member?.admittedAt ? false : await groupIsEmpty();
   const admitted = Boolean(user.id);
 
-  /**
-   * Everybody starts in Discover, so an admitted account that is not in it is
-   * put there here rather than being sent to the Circles tab to go looking. The
-   * membership read above already answered whether they are in, so the common
-   * case — a member who has been here before — costs nothing, which matters
-   * because `accessOf()` runs on every request.
-   *
-   * A failure is survivable — they stay exactly where they were, and the next
-   * request tries again — so it is not allowed to take the whole request down.
-   */
-  let circleTotal = circleCount;
-  if (admitted && !suspended && !inCommunity) {
-    try {
-      await ensureCommunityMembership({ id: user.id, name: memberNameOf(user) });
-      circleTotal += 1;
-    } catch {
-      // Left where they were; the next request tries again.
-    }
-  }
+  const circleTotal = circleCount;
 
   const accountAgeDays = daysSince(member?.createdAt ?? user.createdAt);
   /**
@@ -178,7 +158,7 @@ export async function accessOf(user: User): Promise<Access> {
    * `earnedTrust` unreachable for everybody on that path and told confirmed
    * members to go and confirm an email nothing had sent them.
    */
-  const earnedTrust = inJoinedCircle || (accountAgeDays >= TRUSTED_AFTER_DAYS && circleTotal > 0);
+  const earnedTrust = inJoinedCircle || (accountAgeDays >= TRUSTED_AFTER_DAYS);
   const trusted = member?.trustedAt != null || isAppAdmin || earnedTrust;
 
   // Writing the two decisions down keeps them from wobbling, and gives every new
