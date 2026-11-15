@@ -29,13 +29,9 @@ import {
 } from "../lib/circles.js";
 import { moderatorOf } from "../lib/moderation.js";
 import { badRequest, jsonBody, optionalText, text, unauthorized } from "../lib/items.js";
-import { defaultCircle, upgradeDefaultName } from "../lib/community.js";
+import { upgradeDefaultName } from "../lib/community.js";
 import { unsafeText } from "../lib/safety.js";
 
-/** The one circle a visitor may look at, in the shape `myCircleRows` answers in. */
-function visitorRows(circle: Circle | null) {
-  return circle ? [{ circle, role: null }] : [];
-}
 
 /**
  * Everything the Circles tab needs in one call: the circles you are in, the ones
@@ -56,7 +52,7 @@ export default async (req: Request) => {
   if (req.method === "GET") {
     const mine: { circle: Circle; role: string | null }[] = user
       ? await myCircleRows(user)
-      : visitorRows(await defaultCircle());
+      : [];
     const mineIds = mine.map((row) => row.circle.id);
 
     // A private circle is invisible until you are invited; the other two are
@@ -192,10 +188,8 @@ export default async (req: Request) => {
   // help.
   if (!access.canCreateCircle) {
     return forbidden(
-      access.circleCount === 0
-        ? "Join a circle first — being in one is what starting your own is built on."
-        : access.trustedInDays > 0
-          ? `Join a circle and you can start your own straight away — Discover, which everybody is in, does not count. Otherwise your account can start one in ${access.trustedInDays} ${access.trustedInDays === 1 ? "day" : "days"}, and an admin can vouch for it sooner.`
+      access.trustedInDays > 0
+          ? `Join a circle and you can start your own straight away. Otherwise your account can start one in ${access.trustedInDays} ${access.trustedInDays === 1 ? "day" : "days"}, and an admin can vouch for it sooner.`
           : "Starting a circle is for established members. Ask an admin to vouch for your account, or ask a member to start one and make you an admin.",
     );
   }
