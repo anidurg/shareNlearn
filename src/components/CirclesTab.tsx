@@ -32,7 +32,6 @@ import {
   Modal,
   SearchField,
   TabHeader,
-  WelcomeNote,
 } from "./shared";
 
 // The words a member reads for each of the three doors. "Ask to join" is the
@@ -310,92 +309,39 @@ export function CirclesTab({
   );
 }
 
-/**
- * The doorway, which used to be Home's job and came here with the tab. Somebody
- * with no account is shown what the app is *for* and not a word of what anybody
- * put in it: the default circle's name, the categories it holds, and an
- * invitation to come in. There is no feed here to hide — `visibleTo()` answers a
- * visitor's listing with nothing at all, so the shares are absent rather than
- * merely off screen — and the tiles carry no counts, a count of what you cannot
- * read still being something about other members.
- *
- * A tile is still tappable, and what it opens is the way in.
- */
+/** A visitor sees the purpose of the app, never a circle's contents. */
 function VisitorWindow({
-  store,
-  currentCircle,
   onNeedsLogin,
 }: {
   store: ShareAndLearn;
   currentCircle: Circle | null;
   onNeedsLogin: () => void;
 }) {
-  const circleId = currentCircle?.id ?? null;
-
-  // The member-wide list is empty for a visitor, so the circle on offer asks for
-  // its own categories the same way a member's circle page does. It is the only
-  // read a visitor makes, and the server answers it with the shell alone.
-  useEffect(() => {
-    if (circleId === null) return;
-    store.loadCircleCategories(circleId).catch(() => {});
-  }, [circleId, store.loadCircleCategories]);
-
-  const counted = circleId === null ? undefined : store.circleCategories[circleId];
-  const categoriesHere = useMemo(
-    () => counted ?? (circleId === null ? [] : (store.categoriesByCircle.get(circleId) ?? [])),
-    [counted, circleId, store.categoriesByCircle],
-  );
-
   return (
-    <>
-      <WelcomeNote
-        memberName={null}
-        compact={currentCircle !== null}
-        discover={currentCircle?.isDefault ?? false}
-      />
-
-      {/* Nothing for Discover: the header dropdown above already names the circle
-          in view, and a card repeating it was the shop window describing its own
-          glass. */}
-      {currentCircle && !currentCircle.isDefault && (
-        <header className="home-circle-strip">
-          {currentCircle.coverUrl && (
-            <img className="circle-cover circle-cover-wide" src={currentCircle.coverUrl} alt="" />
-          )}
-          <div className="home-circle-line">
-            <span className="circle-icon" aria-hidden="true">
-              {currentCircle.icon}
-            </span>
-            <h2 className="home-circle-name">{currentCircle.name}</h2>
-          </div>
-        </header>
-      )}
-
-      <CategoryGrid
-        categories={categoriesHere}
-        canManage={false}
-        title={currentCircle ? null : "What people share here"}
-        showCounts={false}
-        emptyNote="This circle has not decided what it holds yet."
-        onOpen={() => onNeedsLogin()}
-      />
-
-      <section className="home-section join-note">
-        <h2 className="section-title">Discover more when you join us</h2>
-        <p className="section-note">
-          Log in to explore posts shared by members, save your favorites, and share your own
-          discoveries.
-        </p>
-        <div className="join-note-actions">
-          <button className="btn btn-primary" onClick={() => onNeedsLogin()}>
-            Create account
-          </button>
-          <button className="btn btn-ghost" onClick={() => onNeedsLogin()}>
-            Log in
-          </button>
-        </div>
-      </section>
-    </>
+    <section className="visitor-welcome">
+      <h1>Explore. Learn. Share. Inspire.</h1>
+      <p className="visitor-intro">
+        A place to preserve what matters, share what you learn, and stay connected with your communities.
+      </p>
+      <div className="visitor-features">
+        {[
+          ["👥", "Your Circles", "Connect with your communities."],
+          ["🔖", "My Library", "Keep what matters to you."],
+          ["💡", "Share & Learn", "Share knowledge and experiences."],
+        ].map(([icon, title, description]) => (
+          <article className="visitor-feature" key={title}>
+            <span aria-hidden="true">{icon}</span>
+            <h2>{title}</h2>
+            <p>{description}</p>
+          </article>
+        ))}
+      </div>
+      <div className="join-note-actions">
+        <button className="btn btn-primary" onClick={onNeedsLogin}>Create account</button>
+        <button className="btn btn-ghost" onClick={onNeedsLogin}>Log in</button>
+      </div>
+      <p className="visitor-invitation">Already invited to a Circle? Log in to get started.</p>
+    </section>
   );
 }
 
