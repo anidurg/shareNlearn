@@ -199,13 +199,24 @@ export function AuthPanel({ onClose, initialMode = "welcome" }: AuthPanelProps) 
    * the far side. How long to keep the login is answered first, because by the
    * time the cookies are written this panel no longer exists.
    */
-  function continueWith(provider: AuthProvider) {
+  async function continueWith(provider: AuthProvider) {
+    if (busy) return;
+    const label = OAUTH_PROVIDERS.find((p) => p.id === provider)?.label ?? provider;
     setError(null);
-    setKeepSignedIn(keep);
+    setNotice(`Connecting to ${label}…`);
+    setBusy(true);
     try {
-      oauthLogin(provider);
-    } catch {
-      setError("That way in is not available just now. Try an email link instead.");
+      setKeepSignedIn(keep);
+      await oauthLogin(provider);
+    } catch (err) {
+      // Some browser/Identity combinations initiate navigation before throwing.
+      // Give the redirect time to leave this page before announcing a failure.
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 2500));
+      console.warn("OAuth sign-in reported an exception", provider, err instanceof Error ? err.name : "Unknown error");
+      setNotice(null);
+      setError(`If ${label} did not open, please try again or continue with email.`);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -367,7 +378,8 @@ export function AuthPanel({ onClose, initialMode = "welcome" }: AuthPanelProps) 
                         key={provider}
                         type="button"
                         className="btn btn-provider"
-                        onClick={() => continueWith(provider)}
+                        disabled={busy}
+                        onClick={() => void continueWith(provider)}
                       >
                         Continue with {label}
                       </button>
@@ -411,8 +423,7 @@ export function AuthPanel({ onClose, initialMode = "welcome" }: AuthPanelProps) 
           <form onSubmit={handleSubmit} className="auth-form">
             {mode === "signup" && !pendingInvite() && (
               <p className="form-notice">
-                Anybody can join. Create an account and you land in Discover, the circle everybody
-                shares — read what is there, and add something of your own.
+                Anybody can join. Create an account to connect with your Circles and keep what matters to you.
               </p>
             )}
             {mode === "signup" && (

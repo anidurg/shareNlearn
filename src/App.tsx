@@ -362,6 +362,7 @@ export default function App() {
     gate === "circle-first" &&
     route.tab !== "circles" &&
     route.tab !== "profile" &&
+    route.tab !== "library" &&
     route.tab !== "about";
 
   /** Songs, recipes and remedies each open one item at `#/<tab>/<id>`. */
@@ -767,7 +768,7 @@ export default function App() {
               Circles listing it says "All circles" along with the page.
               A visitor with no account has exactly one — Discover — and seeing it
               named here is how they know what they are reading. */}
-          {ready && !barred && (
+          {ready && user && !barred && (
             <CircleMenu
               circles={store.circles}
               openCircles={openToAll}
@@ -784,7 +785,7 @@ export default function App() {
               today's posts. The store reads everything again whenever the app comes
               back to the front, counted category lists included, so the button was
               offering to do what had already happened. */}
-          <NotificationBell notifications={store.notifications} />
+          {ready && user && <NotificationBell notifications={store.notifications} />}
           {ready && user ? (
             // The account, as one round mark in the corner. It was a bordered pill
             // carrying the word "Profile" as well, which is a lot of header for a
@@ -816,7 +817,7 @@ export default function App() {
         </div>
       </header>
 
-      {!joining && !viewingShare && !barred && (
+      {ready && user && !joining && !viewingShare && !barred && (
         <Nav
           active={route.tab}
           onNavigate={goToTab}
